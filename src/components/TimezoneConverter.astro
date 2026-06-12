@@ -1,0 +1,382 @@
+---
+// TimezoneConverter.astro — all interactivity is client-side
+---
+
+<div style="max-width:var(--width-page); margin:0 auto; padding:var(--spacing-section) var(--spacing-base);">
+
+  <!-- ─── Converter Card ─── -->
+  <div class="shadow-card" style="background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-lg); padding:var(--spacing-lg); margin-bottom:var(--spacing-lg);">
+
+    <!-- From / To + Swap -->
+    <div class="grid grid-cols-1 sm:grid-cols-[1fr_56px_1fr] gap-3 items-end" style="margin-bottom:var(--spacing-sm);">
+
+      <!-- From -->
+      <div>
+        <label for="from-tz" style="display:block; font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">
+          From timezone
+        </label>
+        <div style="position:relative;">
+          <select id="from-tz" style="width:100%; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-sm); height:var(--height-input); padding:0 40px 0 16px; font-size:14px; color:var(--color-ink); font-weight:500; cursor:pointer;">
+          </select>
+          <span style="pointer-events:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--color-muted); font-size:11px;">▾</span>
+        </div>
+      </div>
+
+      <!-- Swap -->
+      <div class="flex justify-center items-end pb-1">
+        <button id="swap-btn"
+          style="width:48px; height:48px; border-radius:var(--radius-full); border:1px solid var(--color-hairline); background:var(--color-canvas); color:var(--color-muted); cursor:pointer; display:flex; align-items:center; justify-content:center;"
+          title="Swap timezones" aria-label="Swap timezones">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- To -->
+      <div>
+        <label for="to-tz" style="display:block; font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">
+          To timezone
+        </label>
+        <div style="position:relative;">
+          <select id="to-tz" style="width:100%; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-sm); height:var(--height-input); padding:0 40px 0 16px; font-size:14px; color:var(--color-ink); font-weight:500; cursor:pointer;">
+          </select>
+          <span style="pointer-events:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--color-muted); font-size:11px;">▾</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date + Quick pick -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div>
+        <label for="input-dt" style="display:block; font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">
+          Date &amp; time
+        </label>
+        <input type="datetime-local" id="input-dt"
+          style="width:100%; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-sm); height:var(--height-input); padding:0 16px; font-size:14px; color:var(--color-ink); font-weight:500;" />
+      </div>
+      <div>
+        <label for="quick-pick" style="display:block; font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">
+          Quick select
+        </label>
+        <div style="position:relative;">
+          <select id="quick-pick" style="width:100%; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-sm); height:var(--height-input); padding:0 40px 0 16px; font-size:14px; color:var(--color-ink); font-weight:500; cursor:pointer;">
+            <option value="">— pick a time —</option>
+            <option value="now">Right now</option>
+            <option value="sod">Start of day · 09:00</option>
+            <option value="noon">Noon · 12:00</option>
+            <option value="eod">End of day · 17:00</option>
+            <option value="midnight">Midnight · 00:00</option>
+          </select>
+          <span style="pointer-events:none; position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--color-muted); font-size:11px;">▾</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Result Card ─── -->
+  <div class="shadow-card" style="background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:var(--spacing-xl);">
+
+    <!-- Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; padding:var(--spacing-md) var(--spacing-lg); border-bottom:1px solid var(--color-hairline-soft); background:var(--color-surface-soft);">
+      <span style="font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em;">Conversion result</span>
+      <div style="display:flex; align-items:center; gap:var(--spacing-md);">
+        <span id="diff-badge" style="background:var(--color-rausch-soft); color:var(--color-rausch); font-size:11px; font-weight:700; padding:3px 12px; border-radius:var(--radius-full);">+0h</span>
+        <button id="copy-btn" class="copy-btn"
+          style="border:1px solid var(--color-hairline); border-radius:var(--radius-sm); padding:6px 16px; font-size:14px; font-weight:500; color:var(--color-ink); background:var(--color-canvas); cursor:pointer;">
+          Copy
+        </button>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="grid grid-cols-1 sm:grid-cols-[1fr_56px_1fr]">
+
+      <!-- From result -->
+      <div style="padding:var(--spacing-lg);">
+        <div id="from-tz-label" style="font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">—</div>
+        <div id="result-from-time" style="font-size:42px; font-weight:700; color:var(--color-ink); line-height:1; letter-spacing:-1.5px; margin-bottom:4px;">—</div>
+        <div id="result-from-date" style="font-size:14px; color:var(--color-muted);">—</div>
+      </div>
+
+      <!-- Arrow orb -->
+      <div class="hidden sm:flex items-center justify-center">
+        <div style="width:40px; height:40px; border-radius:var(--radius-full); background:var(--color-rausch); display:flex; align-items:center; justify-content:center; flex-shrink:0;" class="shadow-card">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </div>
+      </div>
+
+      <!-- To result -->
+      <div style="padding:var(--spacing-lg); border-top:1px solid var(--color-hairline-soft);" class="sm:border-t-0">
+        <div id="to-tz-label" style="font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">—</div>
+        <div id="result-to-time" style="font-size:42px; font-weight:700; color:var(--color-rausch); line-height:1; letter-spacing:-1.5px; margin-bottom:4px;">—</div>
+        <div id="result-to-date" style="font-size:14px; color:var(--color-muted);">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── World Clocks ─── -->
+  <div>
+    <h2 style="font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-md);">
+      World clocks — tap to set as destination
+    </h2>
+    <div id="world-clocks" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const ZONES = [
+    { label: "Baker Island (UTC-12)",    tz: "Etc/GMT+12" },
+    { label: "Pago Pago (UTC-11)",      tz: "Pacific/Pago_Pago" },
+    { label: "Honolulu (UTC-10)",      tz: "Pacific/Honolulu" },
+    { label: "Marquesas Is. (UTC-9:30)",tz: "Pacific/Marquesas" },
+    { label: "Anchorage (UTC-9)",      tz: "America/Anchorage" },
+    { label: "Los Angeles (UTC-8)",    tz: "America/Los_Angeles" },
+    { label: "Denver (UTC-7)",         tz: "America/Denver" },
+    { label: "Chicago (UTC-6)",        tz: "America/Chicago" },
+    { label: "New York (UTC-5)",       tz: "America/New_York" },
+    { label: "Halifax (UTC-4)",        tz: "America/Halifax" },
+    { label: "St. John's (UTC-3:30)",  tz: "America/St_Johns" },
+    { label: "Buenos Aires (UTC-3)",   tz: "America/Argentina/Buenos_Aires" },
+    { label: "South Georgia (UTC-2)",  tz: "Atlantic/South_Georgia" },
+    { label: "Azores (UTC-1)",         tz: "Atlantic/Azores" },
+    { label: "London (UTC+0)",         tz: "Europe/London" },
+    { label: "Paris / Berlin (UTC+1)", tz: "Europe/Paris" },
+    { label: "Helsinki / Cairo (UTC+2)",tz: "Europe/Helsinki" },
+    { label: "Moscow / Istanbul (UTC+3)",tz: "Europe/Moscow" },
+    { label: "Tehran (UTC+3:30)",      tz: "Asia/Tehran" },
+    { label: "Dubai (UTC+4)",          tz: "Asia/Dubai" },
+    { label: "Kabul (UTC+4:30)",       tz: "Asia/Kabul" },
+    { label: "Karachi (UTC+5)",        tz: "Asia/Karachi" },
+    { label: "Kolkata / Mumbai (UTC+5:30)", tz: "Asia/Kolkata" },
+    { label: "Kathmandu (UTC+5:45)",   tz: "Asia/Kathmandu" },
+    { label: "Dhaka (UTC+6)",          tz: "Asia/Dhaka" },
+    { label: "Yangon (UTC+6:30)",      tz: "Asia/Yangon" },
+    { label: "Bangkok / Jakarta (UTC+7)",tz: "Asia/Bangkok" },
+    { label: "Singapore / HK (UTC+8)", tz: "Asia/Singapore" },
+    { label: "Eucla (UTC+8:45)",       tz: "Australia/Eucla" },
+    { label: "Tokyo / Seoul (UTC+9)",  tz: "Asia/Tokyo" },
+    { label: "Adelaide / Darwin (UTC+9:30)", tz: "Australia/Adelaide" },
+    { label: "Sydney / Brisbane (UTC+10)", tz: "Australia/Sydney" },
+    { label: "Lord Howe Is. (UTC+10:30)", tz: "Australia/Lord_Howe" },
+    { label: "Noumea (UTC+11)",        tz: "Pacific/Guadalcanal" },
+    { label: "Auckland / Fiji (UTC+12)", tz: "Pacific/Auckland" },
+    { label: "Chatham Is. (UTC+12:45)", tz: "Pacific/Chatham" },
+    { label: "Nuku'alofa (UTC+13)",    tz: "Pacific/Tongatapu" },
+    { label: "Kiritimati (UTC+14)",    tz: "Pacific/Kiritimati" },
+  ];
+
+  const WORLD_CLOCKS = [
+    { city: "London",      tz: "Europe/London" },
+    { city: "New York",    tz: "America/New_York" },
+    { city: "Los Angeles", tz: "America/Los_Angeles" },
+    { city: "Paris",       tz: "Europe/Paris" },
+    { city: "Dubai",       tz: "Asia/Dubai" },
+    { city: "Mumbai",      tz: "Asia/Kolkata" },
+    { city: "Singapore",   tz: "Asia/Singapore" },
+    { city: "Tokyo",       tz: "Asia/Tokyo" },
+    { city: "Sydney",      tz: "Australia/Sydney" },
+    { city: "São Paulo",   tz: "America/Sao_Paulo" },
+  ];
+
+  function formatTime(date: Date, tz: string) {
+    return new Intl.DateTimeFormat('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false }).format(date);
+  }
+  function formatDate(date: Date, tz: string) {
+    return new Intl.DateTimeFormat('en-US', { timeZone: tz, weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(date);
+  }
+  function getOffsetHours(tz: string, date: Date) {
+    const utc = new Date(date.toLocaleString('en-US', { timeZone: 'UTC' }));
+    const local = new Date(date.toLocaleString('en-US', { timeZone: tz }));
+    return (local.getTime() - utc.getTime()) / 3_600_000;
+  }
+  function resolveWallTime(dtVal: string, fromTz: string) {
+    const [datePart, timePart] = dtVal.split('T');
+    const [yr, mo, dy] = datePart.split('-').map(Number);
+    const [hr, mn] = timePart.split(':').map(Number);
+    let guessUTC = Date.UTC(yr, mo - 1, dy, hr, mn, 0);
+    for (let i = 0; i < 3; i++) {
+      const d = new Date(guessUTC);
+      const s = new Intl.DateTimeFormat('en-US', {
+        timeZone: fromTz, year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', hour12: false,
+      }).format(d);
+      const p = s.match(/(\d+)\/(\d+)\/(\d+),\s+(\d+):(\d+)/);
+      if (p) {
+        const [, wMo, wDy, wYr, wHr, wMn] = p.map(Number);
+        const diff = Date.UTC(yr, mo - 1, dy, hr, mn) - Date.UTC(wYr, wMo - 1, wDy, wHr === 24 ? 0 : wHr, wMn);
+        guessUTC += diff;
+        if (diff === 0) break;
+      }
+    }
+    return new Date(guessUTC);
+  }
+  function pad(n: number) { return String(n).padStart(2, '0'); }
+
+  const fromSel   = document.getElementById('from-tz') as HTMLSelectElement | null;
+  const toSel     = document.getElementById('to-tz') as HTMLSelectElement | null;
+  const dtInput   = document.getElementById('input-dt') as HTMLInputElement | null;
+  const quickPick = document.getElementById('quick-pick') as HTMLSelectElement | null;
+  const diffBadge = document.getElementById('diff-badge') as HTMLElement | null;
+  const copyBtn   = document.getElementById('copy-btn') as HTMLButtonElement | null;
+  const clocksEl  = document.getElementById('world-clocks') as HTMLElement | null;
+
+  // Populate selects
+  if (fromSel && toSel) {
+    ZONES.forEach(z => {
+      fromSel.innerHTML += `<option value="${z.tz}">${z.label}</option>`;
+      toSel.innerHTML   += `<option value="${z.tz}">${z.label}</option>`;
+    });
+    const localTz  = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const localIdx = ZONES.findIndex(z => z.tz === localTz);
+    if (localIdx >= 0) fromSel.selectedIndex = localIdx;
+    const nyIdx = ZONES.findIndex(z => z.tz === 'America/New_York');
+    toSel.selectedIndex = nyIdx >= 0 ? nyIdx : 3;
+  }
+
+  // Set now
+  function setNow() {
+    if (!dtInput) return;
+    const now = new Date();
+    dtInput.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  }
+  setNow();
+
+  function convert() {
+    if (!dtInput || !dtInput.value || !fromSel || !toSel || !diffBadge) return;
+    const date = resolveWallTime(dtInput.value, fromSel.value);
+
+    const fromTzLabel = document.getElementById('from-tz-label');
+    const resultFromTime = document.getElementById('result-from-time');
+    const resultFromDate = document.getElementById('result-from-date');
+    if (fromTzLabel) fromTzLabel.textContent = fromSel.value.split('/').pop()?.replace(/_/g, ' ') || '';
+    if (resultFromTime) resultFromTime.textContent = formatTime(date, fromSel.value);
+    if (resultFromDate) resultFromDate.textContent = formatDate(date, fromSel.value);
+
+    const toTzLabel = document.getElementById('to-tz-label');
+    const resultToTime = document.getElementById('result-to-time');
+    const resultToDate = document.getElementById('result-to-date');
+    if (toTzLabel) toTzLabel.textContent = toSel.value.split('/').pop()?.replace(/_/g, ' ') || '';
+    if (resultToTime) resultToTime.textContent = formatTime(date, toSel.value);
+    if (resultToDate) resultToDate.textContent = formatDate(date, toSel.value);
+
+    const diff = getOffsetHours(toSel.value, date) - getOffsetHours(fromSel.value, date);
+    diffBadge.textContent = diff === 0 ? 'Same time' : diff > 0 ? `+${diff}h` : `${diff}h`;
+
+    updateWorldClockTimes(date);
+  }
+
+  quickPick?.addEventListener('change', () => {
+    if (!quickPick || !dtInput) return;
+    const v = quickPick.value;
+    if (!v) return;
+    const now = new Date();
+    const map: Record<string, number[]> = { now: [now.getHours(), now.getMinutes()], sod:[9,0], noon:[12,0], eod:[17,0], midnight:[0,0] };
+    const [h, m] = map[v] || [now.getHours(), now.getMinutes()];
+    dtInput.value = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(h)}:${pad(m)}`;
+    quickPick.value = '';
+    convert();
+  });
+
+  document.getElementById('swap-btn')?.addEventListener('click', () => {
+    if (!fromSel || !toSel) return;
+    const tmp = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = tmp;
+    convert();
+  });
+
+  copyBtn?.addEventListener('click', () => {
+    if (!copyBtn) return;
+    const fromTzLabel = document.getElementById('from-tz-label');
+    const resultFromTime = document.getElementById('result-from-time');
+    const resultFromDate = document.getElementById('result-from-date');
+    const toTzLabel = document.getElementById('to-tz-label');
+    const resultToTime = document.getElementById('result-to-time');
+    const resultToDate = document.getElementById('result-to-date');
+
+    const text = [
+      `${fromTzLabel?.textContent || ''}: ${resultFromTime?.textContent || ''}, ${resultFromDate?.textContent || ''}`,
+      `→ ${toTzLabel?.textContent || ''}: ${resultToTime?.textContent || ''}, ${resultToDate?.textContent || ''}`,
+    ].join('\n');
+    navigator.clipboard.writeText(text).then(() => {
+      copyBtn.textContent = 'Copied!';
+      copyBtn.classList.add('is-copied');
+      setTimeout(() => { copyBtn.textContent = 'Copy'; copyBtn.classList.remove('is-copied'); }, 2000);
+    });
+  });
+
+  function buildWorldClocks() {
+    if (!clocksEl) return;
+    clocksEl.innerHTML = '';
+    const now = new Date();
+    const todayStr = now.toDateString();
+
+    WORLD_CLOCKS.forEach(wc => {
+      const wcId = `wc-${wc.tz.replace(/\//g, '-')}`;
+      const time = formatTime(now, wc.tz);
+      const offH = getOffsetHours(wc.tz, now);
+      const offStr = offH === 0 ? 'UTC±0' : offH > 0 ? `UTC+${offH}` : `UTC${offH}`;
+
+      const cityDate = new Date(now.toLocaleString('en-US', { timeZone: wc.tz }));
+      const dayDiff = Math.round((new Date(cityDate.toDateString()).getTime() - new Date(todayStr).getTime()) / 86_400_000);
+      const dayBadge = dayDiff === 1
+        ? `<span style="position:absolute;top:8px;right:8px;background:var(--color-rausch-soft);color:var(--color-rausch);font-size:9px;font-weight:700;padding:2px 6px;border-radius:9999px;text-transform:uppercase;">+1</span>`
+        : dayDiff === -1
+        ? `<span style="position:absolute;top:8px;right:8px;background:var(--color-surface-soft);color:var(--color-muted);font-size:9px;font-weight:700;padding:2px 6px;border-radius:9999px;text-transform:uppercase;">-1</span>`
+        : '';
+
+      const card = document.createElement('div');
+      card.className = 'world-card';
+      card.dataset.tz = wc.tz;
+      card.style.cssText = 'position:relative; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-md); padding:var(--spacing-base); cursor:pointer; transition:border-color 0.15s, box-shadow 0.15s;';
+      card.innerHTML = `
+        ${dayBadge}
+        <div class="wc-city" style="font-size:11px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:4px;">${wc.city}</div>
+        <div id="${wcId}" style="font-size:20px; font-weight:700; color:var(--color-ink); line-height:1; margin-bottom:3px; font-variant-numeric:tabular-nums;">${time}</div>
+        <div style="font-size:11px; color:var(--color-muted-soft);">${offStr}</div>
+      `;
+
+      card.addEventListener('mouseenter', () => { card.style.borderColor = 'var(--color-border-strong)'; card.style.boxShadow = 'var(--shadow-card)'; });
+      card.addEventListener('mouseleave', () => {
+        if (!card.classList.contains('is-active')) { card.style.borderColor = 'var(--color-hairline)'; card.style.boxShadow = 'none'; }
+      });
+      card.addEventListener('click', () => {
+        if (!toSel) return;
+        const idx = ZONES.findIndex(z => z.tz === wc.tz);
+        if (idx >= 0) toSel.selectedIndex = idx;
+        convert();
+        document.querySelectorAll('.world-card').forEach(c => {
+          const cardEl = c as HTMLElement;
+          cardEl.classList.remove('is-active');
+          cardEl.style.borderColor = 'var(--color-hairline)';
+          cardEl.style.backgroundColor = 'var(--color-canvas)';
+          cardEl.style.boxShadow = 'none';
+        });
+        card.classList.add('is-active');
+        card.style.borderColor = 'var(--color-rausch)';
+        card.style.backgroundColor = 'var(--color-rausch-soft)';
+        card.style.boxShadow = 'none';
+      });
+
+      clocksEl.appendChild(card);
+    });
+  }
+
+  function updateWorldClockTimes(refDate: Date) {
+    WORLD_CLOCKS.forEach(wc => {
+      const el = document.getElementById(`wc-${wc.tz.replace(/\//g, '-')}`);
+      if (el) el.textContent = formatTime(refDate, wc.tz);
+    });
+  }
+
+  buildWorldClocks();
+  convert();
+  dtInput?.addEventListener('input', convert);
+  fromSel?.addEventListener('change', convert);
+  toSel?.addEventListener('change', convert);
+</script>

@@ -1,0 +1,60 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout 
+  title="Privacy policy" 
+  description="How we handle your data and protect your privacy."
+  keywords="privacy policy, data protection, cookies, timezone converter privacy"
+>
+
+  <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
+    <div style="max-width:var(--width-page); margin:0 auto;">
+      <p style="font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">Page</p>
+      <h1 style="font-size:28px; font-weight:700; color:var(--color-ink); line-height:1.43; margin-bottom:var(--spacing-sm);">Privacy policy</h1>
+      <p style="font-size:16px; color:var(--color-muted); line-height:1.5; max-width:480px;">How we handle your data and protect your privacy.</p>
+    </div>
+  </div>
+
+  <div style="max-width:var(--width-page); margin:0 auto; padding:var(--spacing-section) var(--spacing-base);">
+    <div class="shadow-card" style="background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-lg); padding:var(--spacing-xl);">
+      <div style="margin-bottom:var(--spacing-xl);">
+        <h2 style="font-size:22px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-md);">1. Information We Collect</h2>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          Timezone Converter is designed to be as private as possible. We do not require any registration or personal information to use our service.
+        </p>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          <strong>Local Storage:</strong> We use your browser's local storage to save your preferred timezones and cities. This data stays on your device and is never sent to our servers.
+        </p>
+      </div>
+
+      <div style="margin-bottom:var(--spacing-xl);">
+        <h2 style="font-size:22px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-md);">2. How We Use Information</h2>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          Since we don't collect personal data, we don't use it for marketing or sales. The only "data" we process is the timezone information you input, which is handled entirely within your browser to provide the conversion results.
+        </p>
+      </div>
+
+      <div style="margin-bottom:var(--spacing-xl);">
+        <h2 style="font-size:22px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-md);">3. Cookies</h2>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          We do not use tracking cookies. We may use essential cookies or similar browser technologies (like localStorage) to maintain your preferences across sessions.
+        </p>
+      </div>
+
+      <div style="margin-bottom:var(--spacing-xl);">
+        <h2 style="font-size:22px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-md);">4. Changes to This Policy</h2>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page.
+        </p>
+      </div>
+
+      <div style="border-top:1px solid var(--color-hairline-soft); padding-top:var(--spacing-lg);">
+        <a href="/" style="display:inline-flex; align-items:center; gap:8px; background:var(--color-rausch); color:white; border-radius:var(--radius-sm); padding:0 var(--spacing-lg); height:var(--height-btn); font-size:16px; font-weight:500; text-decoration:none;">
+          ← Back to converter
+        </a>
+      </div>
+    </div>
+  </div>
+
+</BaseLayout>

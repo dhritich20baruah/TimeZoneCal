@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+:root {
+  --color-rausch-active:   #e00b41;
+  --color-rausch-disabled: #ffd1da;
+  --color-rausch-soft:     #fff0f2;
+  --color-ink:             #222222;
+  --color-ink-soft:        #484848;
+  --color-body:            #3f3f3f;
+  --color-muted:           #6a6a6a;
+  --color-hairline:        #dddddd;
+  --color-hairline-soft:   #ebebeb;
+  --color-border-strong:   #c1c1c1;
+  --color-canvas:          #ffffff;
+  --color-surface-soft:    #f7f7f7;
+  --color-surface-card:    #ffffff;
+  --color-surface-strong:  #f2f2f2;
+  --color-legal-link:      #428bff;
+  --color-error:           #c13515;
+
+  --shadow-card:       rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.04) 0 2px 6px 0, rgba(0,0,0,0.10) 0 4px 8px 0;
+  --shadow-card-hover: rgba(0,0,0,0.02) 0 0 0 1px, rgba(0,0,0,0.06) 0 4px 10px 0, rgba(0,0,0,0.14) 0 8px 16px 0;
+}
+
+/* ── Dark Mode Overrides ── */
+:root.dark {
+  --color-rausch-active:   #ff5a5f;
+  --color-rausch-disabled: #484848;
+  --color-rausch-soft:     #2c0f14;
+  --color-ink:             #f7f7f7;
+  --color-ink-soft:        #e3e3e3;
+  --color-body:            #e3e3e3;
+  --color-muted:           #b0b0b0;
+  --color-hairline:        #484848;
+  --color-hairline-soft:   #333333;
+  --color-border-strong:   #6a6a6a;
+  --color-canvas:          #121212;
+  --color-surface-soft:    #1e1e1e;
+  --color-surface-card:    #222222;
+  --color-surface-strong:  #2a2a2a;
+  --color-legal-link:      #66b2ff;
+  --color-error:           #ff5a5f;
+  
+  --shadow-card:       rgba(0,0,0,0.4) 0 0 0 1px, rgba(0,0,0,0.2) 0 2px 6px 0, rgba(0,0,0,0.3) 0 4px 8px 0;
+  --shadow-card-hover: rgba(0,0,0,0.4) 0 0 0 1px, rgba(0,0,0,0.3) 0 4px 10px 0, rgba(0,0,0,0.4) 0 8px 16px 0;
+}
+
+@theme {
+  /* ── Airbnb colors ── */
+  --color-rausch:          #ff385c;
+  --color-rausch-active:   var(--color-rausch-active);
+  --color-rausch-disabled: var(--color-rausch-disabled);
+  --color-rausch-soft:     var(--color-rausch-soft);
+  --color-ink:             var(--color-ink);
+  --color-ink-soft:        var(--color-ink-soft);
+  --color-body:            var(--color-body);
+  --color-muted:           var(--color-muted);
+  --color-muted-soft:      #929292;
+  --color-hairline:        var(--color-hairline);
+  --color-hairline-soft:   var(--color-hairline-soft);
+  --color-border-strong:   var(--color-border-strong);
+  --color-canvas:          var(--color-canvas);
+  --color-surface-soft:    var(--color-surface-soft);
+  --color-surface-card:    var(--color-surface-card);
+  --color-surface-strong:  var(--color-surface-strong);
+  --color-legal-link:      var(--color-legal-link);
+  --color-error:           var(--color-error);
+
+  /* ── Font ── */
+  --font-cereal: 'Inter', -apple-system, system-ui, Roboto, 'Helvetica Neue', sans-serif;
+
+  /* ── Border radius ── */
+  --radius-none: 0px;
+  --radius-xs:   4px;
+  --radius-sm:   8px;
+  --radius-md:   14px;
+  --radius-lg:   20px;
+  --radius-xl:   32px;
+  --radius-full: 9999px;
+
+  /* ── Spacing ── */
+  --spacing-xxs:     2px;
+  --spacing-xs:      4px;
+  --spacing-sm:      8px;
+  --spacing-md:      12px;
+  --spacing-base:    16px;
+  --spacing-lg:      24px;
+  --spacing-xl:      32px;
+  --spacing-xxl:     48px;
+  --spacing-section: 64px;
+
+  /* ── Box shadows (single tier per Airbnb spec) ── */
+  --shadow-card:       var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+
+  /* ── Fixed heights ── */
+  --height-nav:        80px;
+  --height-input:      56px;
+  --height-btn:        48px;
+  --height-search-bar: 64px;
+
+  /* ── Max widths ── */
+  --width-content: 1280px;
+  --width-page:    860px;
+
+  /* ── Font sizes (with line-height) ── */
+  --text-display-xl:   28px;
+  --text-display-lg:   22px;
+  --text-display-md:   21px;
+  --text-display-sm:   20px;
+  --text-title-md:     16px;
+  --text-title-sm:     16px;
+  --text-body-md:      16px;
+  --text-body-sm:      14px;
+  --text-caption:      14px;
+  --text-caption-sm:   13px;
+  --text-badge:        11px;
+  --text-micro-label:  12px;
+  --text-button-md:    16px;
+  --text-button-sm:    14px;
+  --text-nav-link:     16px;
+}
+
+/* ── Base styles ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-family: var(--font-cereal);
+  color: var(--color-ink);
+  background-color: var(--color-canvas);
+}
+
+body {
+  font-family: var(--font-cereal);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Form element resets ── */
+select,
+input[type="datetime-local"] {
+  font-family: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+select:focus,
+input[type="datetime-local"]:focus {
+  outline: none;
+  border-color: var(--color-ink) !important;
+  border-width: 2px !important;
+}
+
+/* ── Utility: card shadow ── */
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.hover\:shadow-card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ── World clock active state ── */
+.world-card.is-active {
+  border-color: var(--color-rausch) !important;
+  background-color: var(--color-rausch-soft) !important;
+}
+
+.world-card.is-active .wc-city {
+  color: var(--color-rausch);
+}
+
+/* ── Copy button copied state ── */
+.copy-btn.is-copied {
+  background-color: var(--color-rausch);
+  color: white;
+  border-color: var(--color-rausch);
+}

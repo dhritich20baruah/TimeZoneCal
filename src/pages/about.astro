@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout 
+  title="About us" 
+  description="We're a small team obsessed with making the everyday friction of working across timezones disappear."
+  keywords="about timezone converter, timezone converter mission, our story, simple timezone tool"
+>
+
+  <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
+    <div style="max-width:var(--width-page); margin:0 auto;">
+      <p style="font-size:12px; font-weight:700; color:var(--color-muted); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:var(--spacing-sm);">Page</p>
+      <h1 style="font-size:28px; font-weight:700; color:var(--color-ink); line-height:1.43; margin-bottom:var(--spacing-sm);">Who we are</h1>
+      <p style="font-size:16px; color:var(--color-muted); line-height:1.5; max-width:480px;">We're a small team obsessed with making the everyday friction of working across timezones disappear.</p>
+    </div>
+  </div>
+
+  <div style="max-width:var(--width-page); margin:0 auto; padding:var(--spacing-section) var(--spacing-base);">
+    <div class="shadow-card" style="background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-lg); padding:var(--spacing-xl);">
+      <div style="margin-bottom:var(--spacing-xl);">
+        <h2 style="font-size:22px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-md);">Our Mission</h2>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          Timezone Converter was born out of a simple frustration: why is it so hard to figure out what time it is for everyone on a global team? We've all been there—trying to coordinate a meeting across three continents, miscalculating UTC offsets, and accidentally scheduling a call for 3:00 AM.
+        </p>
+        <p style="font-size:16px; color:var(--color-body); line-height:1.6; margin-bottom:var(--spacing-lg);">
+          Our mission is to eliminate the cognitive load of timezone math. We build tools that are fast, intuitive, and beautiful, so you can focus on the work that matters, not the clock.
+        </p>
+      </div>
+
+      <div style="margin-bottom:var(--spacing-xl);">
+        <h2 style="font-size:22px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-md);">Why we built this</h2>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:var(--spacing-lg);">
+          <div>
+            <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-xs);">Simplicity first</h3>
+            <p style="font-size:14px; color:var(--color-muted); line-height:1.5;">Most converters are cluttered with ads and complex menus. We stripped everything away to give you exactly what you need in seconds.</p>
+          </div>
+          <div>
+            <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-xs);">Accurate & Reliable</h3>
+            <p style="font-size:14px; color:var(--color-muted); line-height:1.5;">Leveraging the latest IANA timezone database, we ensure your conversions are always accurate, including Daylight Saving Time shifts.</p>
+          </div>
+          <div>
+            <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-xs);">Privacy Focused</h3>
+            <p style="font-size:14px; color:var(--color-muted); line-height:1.5;">We don't track your location or sell your data. Your preferences are stored locally in your browser.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--color-hairline-soft); padding-top:var(--spacing-lg);">
+        <a href="/" style="display:inline-flex; align-items:center; gap:8px; background:var(--color-rausch); color:white; border-radius:var(--radius-sm); padding:0 var(--spacing-lg); height:var(--height-btn); font-size:16px; font-weight:500; text-decoration:none;">
+          ← Back to converter
+        </a>
+      </div>
+    </div>
+  </div>
+
+</BaseLayout>

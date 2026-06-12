@@ -1,0 +1,82 @@
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./src/**/*.{astro,html,js,jsx,ts,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        rausch: {
+          DEFAULT: 'var(--color-rausch)',
+          active:  'var(--color-rausch-active)',
+          disabled:'var(--color-rausch-disabled)',
+        },
+        ink:     'var(--color-ink)',
+        body:    'var(--color-body)',
+        muted:   'var(--color-muted)',
+        'muted-soft': 'var(--color-muted-soft)',
+        hairline:      'var(--color-hairline)',
+        'hairline-soft':'var(--color-hairline-soft)',
+        'border-strong':'var(--color-border-strong)',
+        canvas:        'var(--color-canvas)',
+        'surface-soft':'var(--color-surface-soft)',
+        'surface-card':'var(--color-surface-card)',
+        'surface-strong':'var(--color-surface-strong)',
+        'legal-link':  'var(--color-legal-link)',
+        error:         'var(--color-error)',
+      },
+      fontFamily: {
+        cereal: ['Inter', '-apple-system', 'system-ui', 'Roboto', '"Helvetica Neue"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-xl': ['28px', { lineHeight: '1.43', fontWeight: '700' }],
+        'display-lg': ['22px', { lineHeight: '1.18', letterSpacing: '-0.44px', fontWeight: '500' }],
+        'display-md': ['21px', { lineHeight: '1.43', fontWeight: '700' }],
+        'display-sm': ['20px', { lineHeight: '1.20', letterSpacing: '-0.18px', fontWeight: '600' }],
+        'title-md':   ['16px', { lineHeight: '1.25', fontWeight: '600' }],
+        'title-sm':   ['16px', { lineHeight: '1.25', fontWeight: '500' }],
+        'body-md':    ['16px', { lineHeight: '1.5',  fontWeight: '400' }],
+        'body-sm':    ['14px', { lineHeight: '1.43', fontWeight: '400' }],
+        'caption':    ['14px', { lineHeight: '1.29', fontWeight: '500' }],
+        'caption-sm': ['13px', { lineHeight: '1.23', fontWeight: '400' }],
+        'badge':      ['11px', { lineHeight: '1.18', fontWeight: '600' }],
+        'micro-label':['12px', { lineHeight: '1.33', fontWeight: '700' }],
+        'button-md':  ['16px', { lineHeight: '1.25', fontWeight: '500' }],
+        'button-sm':  ['14px', { lineHeight: '1.29', fontWeight: '500' }],
+      },
+      borderRadius: {
+        'none': '0px',
+        'xs':   '4px',
+        'sm':   '8px',
+        'md':   '14px',
+        'lg':   '20px',
+        'xl':   '32px',
+        'full': '9999px',
+      },
+      spacing: {
+        'xxs':     '2px',
+        'xs':      '4px',
+        'sm':      '8px',
+        'md':      '12px',
+        'base':    '16px',
+        'lg':      '24px',
+        'xl':      '32px',
+        'xxl':     '48px',
+        'section': '64px',
+      },
+      boxShadow: {
+        'card': 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+      },
+      height: {
+        'nav': '80px',
+        'input': '56px',
+        'btn': '48px',
+        'search-bar': '64px',
+      },
+      maxWidth: {
+        'content': '1280px',
+        'page': '860px',
+      }
+    },
+  },
+  plugins: [],
+}
