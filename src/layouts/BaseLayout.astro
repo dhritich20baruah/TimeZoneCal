@@ -58,6 +58,7 @@ const footerCols = {
     <title>{title} · Timezone</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="canonical" href={`https://www.timezonecal.com${Astro.url.pathname}`} />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     
     <!-- Google tag (gtag.js) -->
@@ -101,7 +102,7 @@ const footerCols = {
           <svg width="30" height="30" viewBox="0 0 32 32" fill="var(--color-rausch)" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M16 2C10.477 2 6 6.477 6 12c0 3.537 2.107 7.187 4.688 10.188C12.75 24.5 14.5 26.25 16 27.5c1.5-1.25 3.25-3 5.312-5.312C23.893 19.187 26 15.537 26 12c0-5.523-4.477-10-10-10zm0 13.5a3.5 3.5 0 110-7 3.5 3.5 0 010 7z"/>
           </svg>
-          <span style="color:var(--color-rausch); font-size:20px; font-weight:700; letter-spacing:-0.5px; line-height:1;">timezone</span>
+          <span style="color:var(--color-rausch); font-size:20px; font-weight:700; letter-spacing:-0.5px; line-height:1;">timezonecal</span>
         </a>
 
         <!-- Desktop nav links -->
@@ -160,10 +161,10 @@ const footerCols = {
     </nav>
 
     <!-- Mobile Drawer Overlay -->
-    <div id="drawer-backdrop" class="fixed inset-0 bg-black/50 z-[60] opacity-0 pointer-events-none transition-opacity duration-300"></div>
-    <div id="mobile-drawer" class="fixed top-0 right-0 bottom-0 w-[280px] bg-[var(--color-canvas)] z-[70] translate-x-full transition-transform duration-300 shadow-xl flex flex-col">
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/50 z-60 opacity-0 pointer-events-none transition-opacity duration-300"></div>
+    <div id="mobile-drawer" class="fixed top-0 right-0 bottom-0 w-70 bg-[var(--color-canvas)] z-70 translate-x-full transition-transform duration-300 shadow-xl flex flex-col">
       <div class="p-6 border-bottom-[1px] border-[var(--color-hairline)] flex items-center justify-between">
-        <span style="color:var(--color-rausch); font-size:20px; font-weight:700; letter-spacing:-0.5px;">timezone</span>
+        <span style="color:var(--color-rausch); font-size:20px; font-weight:700; letter-spacing:-0.5px;">timezonecal</span>
         <button id="close-drawer" class="w-10 h-10 rounded-full flex items-center justify-center" style="border:1px solid var(--color-hairline); color:var(--color-muted);">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
