@@ -1,43 +1,123 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TimezoneConverter from '../components/TimezoneConverter.astro';
+import TimelineSlider from '../components/TimelineSlider.astro';
 
-const features = ['All 38 timezones', 'DST-aware', 'Live world clocks', 'Copy to clipboard', 'No sign-up needed'];
+const features = [
+  '24-Hour Timeline Slider',
+  'Interactive World Map',
+  'Simultaneous Multi-City Sync',
+  'Working Hours Meeting Planner',
+  'All 38 Timezones',
+  'DST-Aware & Instant'
+];
 
 const steps = [
-  { step: '1', title: 'Pick your timezones', body: 'Choose any origin and destination timezone from the dropdowns — 20 major cities covered.' },
-  { step: '2', title: 'Set the date & time', body: 'Enter a specific date and time, or use the quick-select shortcuts for common moments.' },
-  { step: '3', title: 'See the result instantly', body: 'The converted time appears immediately, including the date and hour offset between zones.' },
+  { 
+    step: '1', 
+    title: 'Select or Add Cities', 
+    body: 'Pick from 23+ major global business hubs or add your custom cities. Each city appears instantly on the interactive world map and timeline.' 
+  },
+  { 
+    step: '2', 
+    title: 'Drag the 24-Hour Slider', 
+    body: 'Scrub horizontally across the 24 hours of the day. All selected cities, live map pin badges, and dates shift simultaneously in real time.' 
+  },
+  { 
+    step: '3', 
+    title: 'Find Perfect Meeting Overlaps', 
+    body: 'Color-coded visual blocks highlight working hours (9:00–17:00), awake hours, and night windows so you never schedule calls at 3:00 AM.' 
+  },
 ];
 
 const pageLinks = [
-  { href: '/about',          label: 'About us',           sub: 'Who we are' },
-  { href: '/contact',        label: 'Contact us',          sub: 'Get in touch' },
-  { href: '/privacy-policy', label: 'Privacy policy',      sub: 'How we handle data' },
-  { href: '/terms',          label: 'Terms & conditions',  sub: 'Usage rules' },
+  { href: '/about',          label: 'About us',           sub: 'Our mission & story' },
+  { href: '/contact',        label: 'Contact us',          sub: 'Feedback & support' },
+  { href: '/privacy-policy', label: 'Privacy policy',      sub: 'How we respect data' },
+  { href: '/terms',          label: 'Terms of service',    sub: 'Usage guidelines' },
 ];
+
+const faqItems = [
+  {
+    q: 'How does the 24-hour horizontal timeline slider work?',
+    a: 'The 24-hour timeline slider acts as a synchronized master scrubber. When you drag the slider or click any hour block, the local time, date (+1/-1 day), and working status update simultaneously across all selected cities on both the timeline and the world map.'
+  },
+  {
+    q: 'How do the color-coded hour strips help find optimal meeting times?',
+    a: 'Each city track is segmented into 24 one-hour blocks: Green represents standard business hours (9:00 AM – 5:00 PM), Amber represents personal/awake hours (7:00–9:00 AM & 5:00–10:00 PM), and Slate represents nighttime/sleep hours. Look for the vertical slice where all cities display green to find the ideal overlapping meeting window.'
+  },
+  {
+    q: 'Can I add, remove, or customize the cities on the timeline and map?',
+    a: 'Yes! Use the "+ Add City" button to select from major global metropolitan areas (New York, London, Tokyo, San Francisco, Dubai, Mumbai, Singapore, Sydney, etc.). You can remove cities by clicking the "✕" button next to their name. Your selection is automatically saved in your browser.'
+  },
+  {
+    q: 'How do I switch between the 24-Hour Timeline and the Direct Pairwise Converter?',
+    a: 'Use the view switcher tabs at the top of the converter area. Click "24-Hour Timeline & World Map" for multi-city visual comparison, or "Direct Timezone Converter" for a traditional two-location instant conversion tool.'
+  },
+  {
+    q: 'Does the converter automatically adjust for Daylight Saving Time (DST)?',
+    a: 'Yes. Our engine uses standard IANA timezone definitions and native browser date resolution. It automatically accounts for whether a region is currently observing Daylight Saving Time (e.g., EDT/PDT/BST) or Standard Time (EST/PST/GMT).'
+  },
+  {
+    q: 'What does the UTC offset (e.g. UTC+5:30 or UTC-5) mean?',
+    a: 'The UTC offset measures how many hours and minutes a location is ahead (+) or behind (-) Coordinated Universal Time (UTC). For example, London is UTC+0 (or UTC+1 during British Summer Time), New York is UTC-5 (or UTC-4 during daylight time), and Mumbai is UTC+5:30.'
+  },
+  {
+    q: 'Why do some timezones have half-hour or 45-minute offsets?',
+    a: 'While most time zones use whole-hour offsets from UTC, several countries and regions utilize half-hour or 45-minute offsets for solar alignment or historical reasons, such as India (UTC+5:30), Iran (UTC+3:30), Adelaide (UTC+9:30), and Nepal (UTC+5:45).'
+  },
+  {
+    q: 'What does +1 Day or -1 Day on a city badge mean?',
+    a: 'When converting times across significant time differences (like Los Angeles and Tokyo), the local date in the destination city may be on the next calendar day (+1 Day) or previous day (-1 Day) relative to the reference time.'
+  },
+  {
+    q: 'Can I convert future or past dates, or jump to specific times like 9:00 AM or Noon?',
+    a: 'Yes. In the Direct Converter view, you can pick any past or future calendar date. On the 24-Hour Timeline Slider, you can click "Current Time", step by +/-1 hour, use the "Play" simulation button, or click directly on any hour block.'
+  },
+  {
+    q: 'What is the best timezone reference to use for international teams?',
+    a: 'Using UTC (Coordinated Universal Time) as a shared baseline is the international standard for globally distributed remote teams, airlines, software systems, and astronomical scheduling because it never changes for Daylight Saving Time.'
+  }
+];
+
+// JSON-LD Structured Data for Rich Snippets
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": faqItems.map(item => ({
+    "@type": "Question",
+    "name": item.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": item.a
+    }
+  }))
+};
 ---
 
 <BaseLayout 
-  title="Best Time Zone Converter · Compare World Time Instantly" 
-  description="Use our free time zone converter to compare multiple time zones, calculate time differences, and convert between UTC, Pacific Time, and more. Fast, accurate, and easy."
-  keywords="time zone converter, pacific time zone converter, UTC time zone converter, time zone converter calculator, world time converter, multiple time zone converter, time difference calculator"
+  title="24-Hour World Time Zone Converter & Interactive Map Slider" 
+  description="Interactive 24-hour horizontal timeline slider and world map time zone converter. Shift hours across multiple global cities simultaneously, find overlapping meeting times, and calculate accurate time differences."
+  keywords="time zone converter, 24 hour timezone slider, world time map, interactive timeline slider, time difference calculator, meeting planner time converter, multiple time zone converter, UTC time converter, world time buddy alternative"
 >
+
+  <!-- Inject JSON-LD Structured Data -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
 
   <!-- ─── Hero ─── -->
   <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
-    <div style="max-width:var(--width-page); margin:0 auto;">
-      <h1 style="font-size:32px; font-weight:800; color:var(--color-ink); line-height:1.2; margin-bottom:var(--spacing-sm);">
-        The Ultimate Time Zone Converter & Calculator
+    <div style="max-width:var(--width-page); margin:0 auto; text-align:center;">
+      <h1 style="font-size:34px; font-weight:800; color:var(--color-ink); line-height:1.2; margin-bottom:var(--spacing-sm);">
+        24-Hour World Time Zone Converter &amp; Interactive Map
       </h1>
-      <p style="font-size:18px; color:var(--color-muted); line-height:1.6; max-width:600px; margin-bottom:var(--spacing-lg);">
-        Convert time between any two locations instantly. Our world time converter makes it easy to stay in sync with global teams and events.
+      <p style="font-size:18px; color:var(--color-muted); line-height:1.6; max-width:680px; margin:0 auto var(--spacing-lg) auto;">
+        Compare multiple cities simultaneously, drag the 24-hour timeline slider to shift world hours in real time, and easily schedule meetings across global time zones.
       </p>
 
       <!-- Feature pills -->
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-wrap justify-center gap-2">
         {features.map(f => (
-          <span style="display:inline-flex; align-items:center; gap:6px; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-full); padding:6px 14px; font-size:14px; font-weight:500; color:var(--color-body);" class="shadow-card">
+          <span style="display:inline-flex; align-items:center; gap:6px; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-full); padding:6px 14px; font-size:13px; font-weight:600; color:var(--color-body);" class="shadow-card">
             <svg width="8" height="8" viewBox="0 0 8 8" fill="var(--color-rausch)" aria-hidden="true"><circle cx="4" cy="4" r="4"/></svg>
             {f}
           </span>
@@ -46,21 +126,55 @@ const pageLinks = [
     </div>
   </div>
 
-  <!-- ─── Converter ─── -->
-  <TimezoneConverter />
+  <!-- ─── Interactive Views: Timeline Slider & Pair Converter ─── -->
+  <div class="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 pt-8">
+    <div class="inline-flex p-1 rounded-xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline)] shadow-sm gap-1">
+      <button id="tab-timeline-btn" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer bg-[var(--color-canvas)] text-[var(--color-rausch)] shadow-sm flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="2" y1="12" x2="22" y2="12"></line>
+          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+        </svg>
+        24-Hour Timeline &amp; World Map
+      </button>
+      <button id="tab-converter-btn" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer text-[var(--color-muted)] hover:text-[var(--color-ink)] flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="17 1 21 5 17 9"></polyline>
+          <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+          <polyline points="7 23 3 19 7 15"></polyline>
+          <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+        </svg>
+        Direct Timezone Converter
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Timeline Slider View ─── -->
+  <div id="view-timeline" class="block">
+    <TimelineSlider />
+  </div>
+
+  <!-- ─── Direct Converter View ─── -->
+  <div id="view-converter" class="hidden">
+    <TimezoneConverter />
+  </div>
 
   <!-- ─── How it works ─── -->
   <div style="background:var(--color-surface-soft); border-top:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
     <div style="max-width:var(--width-page); margin:0 auto;">
-      <h2 style="font-size:21px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-lg);">How it works</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="text-center mb-10">
+        <span style="font-size:12px; font-weight:700; color:var(--color-rausch); text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:4px;">Workflow</span>
+        <h2 style="font-size:26px; font-weight:800; color:var(--color-ink);">How It Works</h2>
+      </div>
+      
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
         {steps.map(({ step, title, body }) => (
           <div class="shadow-card" style="background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-lg); padding:var(--spacing-lg);">
-            <div style="width:32px; height:32px; border-radius:var(--radius-full); background:var(--color-rausch); color:white; font-size:12px; font-weight:700; display:flex; align-items:center; justify-content:center; margin-bottom:var(--spacing-md);">
+            <div style="width:36px; height:36px; border-radius:var(--radius-full); background:var(--color-rausch); color:white; font-size:14px; font-weight:800; display:flex; align-items:center; justify-content:center; margin-bottom:var(--spacing-md);">
               {step}
             </div>
-            <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:4px;">{title}</h3>
-            <p style="font-size:14px; color:var(--color-muted); line-height:1.43;">{body}</p>
+            <h3 style="font-size:17px; font-weight:700; color:var(--color-ink); margin-bottom:6px;">{title}</h3>
+            <p style="font-size:14px; color:var(--color-muted); line-height:1.5;">{body}</p>
           </div>
         ))}
       </div>
@@ -70,7 +184,7 @@ const pageLinks = [
   <!-- ─── Page links ─── -->
   <div style="padding:var(--spacing-section) var(--spacing-base);">
     <div style="max-width:var(--width-page); margin:0 auto;">
-      <h2 style="font-size:21px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-lg);">Learn more</h2>
+      <h2 style="font-size:21px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-lg);">Explore TimeZoneCal</h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {pageLinks.map(({ href, label, sub }) => (
           <a href={href} class="page-link-card" style="display:block; background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-lg); padding:var(--spacing-lg); text-decoration:none; transition:border-color 0.15s, box-shadow 0.15s;">
@@ -89,114 +203,91 @@ const pageLinks = [
   </div>
 
   <!-- ─── FAQ Section ─── -->
-  <div style="padding:var(--spacing-section) var(--spacing-base); border-top:1px solid var(--color-hairline-soft);">
+  <div style="padding:var(--spacing-section) var(--spacing-base); border-top:1px solid var(--color-hairline-soft); background:var(--color-surface-soft);">
     <div style="max-width:var(--width-page); margin:0 auto;">
-      <h2 style="font-size:24px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-xl);">Frequently Asked Questions</h2>
+      <div class="text-center mb-10">
+        <span style="font-size:12px; font-weight:700; color:var(--color-rausch); text-transform:uppercase; letter-spacing:0.08em; display:block; margin-bottom:4px;">Knowledge Base</span>
+        <h2 style="font-size:26px; font-weight:800; color:var(--color-ink);">Frequently Asked Questions</h2>
+      </div>
       
-      <div class="flex flex-col gap-6">
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">How do I convert a time from one timezone to another?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">Simply select your origin city or timezone in the "From timezone" dropdown and your destination in the "To timezone" dropdown. Then, enter the date and time you wish to convert. The results will update instantly.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">Can I convert times for a future or past date, not just right now?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">Yes! Our <strong>time zone converter calculator</strong> allows you to pick any date and time using the calendar picker. This is essential for planning future meetings or checking when a past event occurred.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">What does the UTC offset (e.g. UTC+5:30) mean?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">The UTC offset indicates how many hours and minutes a specific location is ahead of (+) or behind (-) Coordinated Universal Time (UTC). For example, UTC+5:30 means the time is 5 hours and 30 minutes ahead of the UTC baseline.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">Does the converter automatically account for Daylight Saving Time (DST)?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">Yes, our <strong>world time converter</strong> is DST-aware. When you select a specific date, the tool automatically calculates whether that region is in "Daylight Time" or "Standard Time" for that period.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">Why does the time difference between two cities change at certain times of year?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">This usually happens because one city observes Daylight Saving Time while the other does not, or because they transition to/from DST on different dates. This can cause the "offset" between them to shift by one hour.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">Which countries don't observe Daylight Saving Time?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">Many countries, especially those near the equator, do not observe DST. Examples include India, China, Japan, and most countries in Africa and South America. In the US, Arizona (mostly) and Hawaii do not observe DST.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">What's the difference between UTC and GMT — are they the same thing?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">For most practical purposes, they are the same. However, GMT (Greenwich Mean Time) is a time zone, while UTC (Coordinated Universal Time) is a time standard. UTC does not change for Daylight Saving Time.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">Why do some timezones have a half-hour offset, like India (UTC+5:30) or Nepal (UTC+5:45)?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">While most timezones differ by whole hours, some regions choose offsets that better align with their solar time or political boundaries. India uses a 30-minute offset, and Nepal uses a unique 45-minute offset.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">What does it mean when the result shows +1 or -1 day?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">This indicates that the converted time falls on the next day (+1) or the previous day (-1) relative to the original time you entered. This is common when converting between distant zones like London and Sydney.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">Why can the same abbreviation (like IST or CST) refer to different timezones?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">Abbreviations can be ambiguous. IST can mean India Standard Time, Irish Standard Time, or Israel Standard Time. Our <strong>multiple time zone converter</strong> uses full city/region names to avoid this confusion.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">What's the difference between EST and EDT — and when does each apply?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">EST (Eastern Standard Time) applies during winter months, while EDT (Eastern Daylight Time) applies during the summer when Daylight Saving Time is active. Our tool handles this switch automatically for you.</p>
-        </div>
-
-        <div class="faq-item">
-          <h3 style="font-size:16px; font-weight:600; color:var(--color-ink); margin-bottom:var(--spacing-sm);">What's the best timezone to use when scheduling meetings with a global team?</h3>
-          <p style="font-size:15px; color:var(--color-body); line-height:1.6;">Using a <strong>UTC time zone converter</strong> to set a base time in UTC is often best for global teams. It provides a neutral reference point that everyone can easily convert to their own local time without DST confusion.</p>
-        </div>
+      <div class="flex flex-col gap-5">
+        {faqItems.map(({ q, a }) => (
+          <div class="shadow-card" style="background:var(--color-canvas); border:1px solid var(--color-hairline); border-radius:var(--radius-md); padding:var(--spacing-lg);">
+            <h3 style="font-size:16px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-xs);">{q}</h3>
+            <p style="font-size:14.5px; color:var(--color-body); line-height:1.6;">{a}</p>
+          </div>
+        ))}
       </div>
     </div>
   </div>
 
   <!-- ─── SEO Content Section ─── -->
-  <div style="background:var(--color-surface-soft); border-top:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
+  <div style="border-top:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
     <div style="max-width:var(--width-page); margin:0 auto; color:var(--color-body); line-height:1.8;">
-      <h2 style="font-size:24px; font-weight:700; color:var(--color-ink); margin-bottom:var(--spacing-lg);">Why Use Our Time Zone Converter?</h2>
+      <h2 style="font-size:26px; font-weight:800; color:var(--color-ink); margin-bottom:var(--spacing-lg);">The Modern 24-Hour World Time Zone Converter</h2>
       
       <p style="margin-bottom:var(--spacing-base);">
-        Navigating the complexities of global timing can be a daunting task. Whether you're scheduling an international business meeting, planning a call with family across the globe, or coordinating a massive online event, our <strong>time zone converter</strong> is designed to provide you with the accuracy and speed you need. In today's interconnected world, understanding the temporal gap between cities like New York, London, and Tokyo is no longer just a convenience—it's a necessity.
+        Coordinating meetings, broadcasts, and operations across global timezones used to require tedious mental arithmetic and constant calendar cross-referencing. <strong>TimeZoneCal</strong> solves this challenge with a powerful <strong>24-hour horizontal timeline slider</strong> and synchronized <strong>world map visualization</strong>, designed specifically for distributed teams, international businesses, digital nomads, and remote professionals.
       </p>
 
-      <h3 style="font-size:20px; font-weight:600; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">A Reliable Time Zone Converter Calculator</h3>
+      <h3 style="font-size:20px; font-weight:700; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Simultaneous Multi-City Time Comparison</h3>
       <p style="margin-bottom:var(--spacing-base);">
-        Our tool functions as a sophisticated <strong>time zone converter calculator</strong>. It doesn't just show you the current time in another location; it allows you to pick a specific date and time in the future. This is particularly useful for dealing with Daylight Saving Time (DST) changes, which often occur on different dates in different countries. By using our calculator, you eliminate the risk of "being an hour off"—a common mistake when manually trying to account for DST transitions in regions like Europe or North America.
+        Traditional time converters only let you compare two locations at once. Our <strong>multiple time zone converter</strong> lets you stack and view all your key cities in parallel—such as New York, London, Tokyo, San Francisco, Dubai, and Sydney. When you drag the 24-hour scrubber, every city’s clock, day difference (+1 or -1 day), and map pin badge shifts in complete synchronization.
       </p>
 
-      <h3 style="font-size:20px; font-weight:600; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">The Efficiency of a World Time Converter</h3>
+      <h3 style="font-size:20px; font-weight:700; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Visual Working Hours &amp; Meeting Overlap Finder</h3>
       <p style="margin-bottom:var(--spacing-base);">
-        A true <strong>world time converter</strong> must be comprehensive. That's why we cover over 20 major global time zones, representing the primary hubs of commerce and culture. From the fast-paced markets of Singapore and Hong Kong to the tech centers of San Francisco, our tool ensures you have the right data at your fingertips. If you're a digital nomad or work in a distributed team, you'll appreciate how our <strong>multiple time zone converter</strong> functionality lets you quickly toggle between various destinations, helping you find the perfect "golden hour" where everyone is awake and available for collaboration.
+        Finding the "golden hour" for team meetings is effortless. Each city track displays clear color-coded indicators: <strong>Green for Business Hours (9:00 AM – 5:00 PM)</strong>, <strong>Amber for Personal / Awake Hours</strong>, and <strong>Slate for Night / Sleep</strong>. You can instantly spot overlapping green windows where everyone is awake and available for collaboration.
       </p>
 
-      <h3 style="font-size:20px; font-weight:600; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Pacific Time Zone Converter & UTC Specialization</h3>
+      <h3 style="font-size:20px; font-weight:700; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Interactive Political World Map with Live Time Pins</h3>
       <p style="margin-bottom:var(--spacing-base);">
-        We know that many of our users specifically look for a <strong>pacific time zone converter</strong>. As the home to Hollywood and Silicon Valley, PT (Pacific Time) is one of the most frequently searched zones. Whether you're converting from PST (Standard Time) or PDT (Daylight Time), our tool handles the math for you. Furthermore, for developers, pilots, and military personnel, our <strong>UTC time zone converter</strong> features are indispensable. Using Coordinated Universal Time (UTC) as a baseline is the gold standard for global synchronization, and we make converting from UTC to any local zone as simple as a single click.
+        Visualizing geography is essential when planning global projects. Our interactive world map shows exact geographical pin locations for all selected cities, complete with live converted time badges and country borders. Tapping any pin on the map instantly highlights and scrolls to that city's timeline track.
       </p>
 
-      <h3 style="font-size:20px; font-weight:600; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Key Features of Our Converter</h3>
+      <h3 style="font-size:20px; font-weight:700; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Accurate Daylight Saving Time (DST) Awareness</h3>
+      <p style="margin-bottom:var(--spacing-base);">
+        Daylight Saving Time transitions occur on different calendar dates across North America, Europe, Australia, and other regions, often causing unexpected scheduling errors. <strong>TimeZoneCal</strong> natively calculates seasonal DST transitions using the official IANA database, ensuring 100% accurate time conversions 365 days a year.
+      </p>
+
+      <h3 style="font-size:20px; font-weight:700; color:var(--color-ink); margin-top:var(--spacing-xl); margin-bottom:var(--spacing-md);">Key Features of TimeZoneCal</h3>
       <ul style="margin-bottom:var(--spacing-lg); padding-left:var(--spacing-lg); list-style-type: disc;">
-        <li style="margin-bottom:var(--spacing-xs);"><strong>Instant Conversion:</strong> Results update as you type, providing immediate feedback.</li>
-        <li style="margin-bottom:var(--spacing-xs);"><strong>DST Awareness:</strong> Automatic adjustments for Daylight Saving Time based on the selected date.</li>
-        <li style="margin-bottom:var(--spacing-xs);"><strong>Copy to Clipboard:</strong> Easily share the converted time via email, Slack, or calendar invites.</li>
-        <li style="margin-bottom:var(--spacing-xs);"><strong>World Clocks:</strong> A quick visual reference for the current time in major cities around the globe.</li>
-        <li style="margin-bottom:var(--spacing-xs);"><strong>Clean Interface:</strong> A distraction-free, modern design inspired by top-tier user experience standards.</li>
+        <li style="margin-bottom:var(--spacing-xs);"><strong>24-Hour Draggable Timeline:</strong> Drag anywhere across the 24-hour scale to shift hours simultaneously across all cities.</li>
+        <li style="margin-bottom:var(--spacing-xs);"><strong>Interactive World Map:</strong> Pinned city badges with real-time converted local times and country boundaries.</li>
+        <li style="margin-bottom:var(--spacing-xs);"><strong>Meeting Overlap Indicator:</strong> Live status assessing whether all selected locations are within business hours.</li>
+        <li style="margin-bottom:var(--spacing-xs);"><strong>Direct Pairwise Converter:</strong> Dedicated dropdown converter for fast two-city conversions, date selections, and quick presets.</li>
+        <li style="margin-bottom:var(--spacing-xs);"><strong>Light &amp; Dark Theme Support:</strong> Seamless aesthetic switching with persistent local storage.</li>
+        <li style="margin-bottom:var(--spacing-xs);"><strong>Zero Sign-Up &amp; Privacy First:</strong> No logins, no tracking, and 100% free forever.</li>
       </ul>
-
-      <p style="margin-bottom:var(--spacing-base);">
-        In conclusion, if you are looking for a fast, free, and accurate way to manage your global schedule, you've found the right place. Our <strong>time zone converter</strong> is optimized for both desktop and mobile use, ensuring that whether you're at your desk or on the go, you'll never be out of sync. Start by picking your origin timezone and destination above, and see how simple world time management can be.
-      </p>
     </div>
   </div>
 
 </BaseLayout>
+
+<script>
+  const tabTimelineBtn = document.getElementById('tab-timeline-btn');
+  const tabConverterBtn = document.getElementById('tab-converter-btn');
+  const viewTimeline = document.getElementById('view-timeline');
+  const viewConverter = document.getElementById('view-converter');
+
+  tabTimelineBtn?.addEventListener('click', () => {
+    viewTimeline?.classList.remove('hidden');
+    viewConverter?.classList.add('hidden');
+    tabTimelineBtn.classList.add('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
+    tabTimelineBtn.classList.remove('text-[var(--color-muted)]');
+    tabConverterBtn?.classList.remove('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
+    tabConverterBtn?.classList.add('text-[var(--color-muted)]');
+  });
+
+  tabConverterBtn?.addEventListener('click', () => {
+    viewConverter?.classList.remove('hidden');
+    viewTimeline?.classList.add('hidden');
+    tabConverterBtn.classList.add('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
+    tabConverterBtn.classList.remove('text-[var(--color-muted)]');
+    tabTimelineBtn?.classList.remove('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
+    tabTimelineBtn?.classList.add('text-[var(--color-muted)]');
+  });
+</script>
 
 <style>
   .page-link-card:hover {
@@ -207,3 +298,4 @@ const pageLinks = [
     opacity: 1;
   }
 </style>
+

@@ -1,0 +1,633 @@
+---
+// TimelineSlider.astro — 24-Hour Horizontal Timeline & World Map
+---
+
+<div class="timeline-container w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
+
+  <!-- ─── Top Controls & Header ─── -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-[var(--color-rausch-soft)] text-[var(--color-rausch)]">
+          <span class="w-1.5 h-1.5 rounded-full bg-[var(--color-rausch)] animate-pulse"></span>
+          Interactive Timeline
+        </span>
+        <span class="text-xs text-[var(--color-muted)] font-medium">Drag slider to shift hours across all cities</span>
+      </div>
+      <h2 class="text-2xl lg:text-3xl font-extrabold text-[var(--color-ink)] tracking-tight">
+        24-Hour World Time Slider & Map
+      </h2>
+    </div>
+
+    <!-- Quick action buttons -->
+    <div class="flex items-center flex-wrap gap-2">
+      <!-- Time display badge -->
+      <div class="px-3.5 py-2 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-sm flex items-center gap-2">
+        <span class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider">Base Time:</span>
+        <span id="timeline-base-display" class="text-sm font-bold text-[var(--color-rausch)] font-mono">12:00 (UTC)</span>
+      </div>
+
+      <!-- Reset Now button -->
+      <button id="timeline-now-btn" class="px-3.5 py-2 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] text-xs font-semibold text-[var(--color-ink)] flex items-center gap-1.5 cursor-pointer transition-colors shadow-sm" title="Reset to current local time">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polyline points="12 6 12 12 16 14"></polyline>
+        </svg>
+        Current Time
+      </button>
+
+      <!-- Step -1h / Play / +1h -->
+      <div class="inline-flex rounded-lg border border-[var(--color-hairline)] bg-[var(--color-canvas)] shadow-sm overflow-hidden">
+        <button id="timeline-prev-hour" class="px-2.5 py-2 text-xs font-bold text-[var(--color-ink)] hover:bg-[var(--color-surface-soft)] border-r border-[var(--color-hairline)] cursor-pointer transition-colors" title="Subtract 1 hour">-1h</button>
+        <button id="timeline-play-btn" class="px-3 py-2 text-xs font-bold text-[var(--color-rausch)] hover:bg-[var(--color-surface-soft)] border-r border-[var(--color-hairline)] flex items-center gap-1 cursor-pointer transition-colors" title="Play simulation">
+          <svg id="timeline-play-icon" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <svg id="timeline-pause-icon" class="hidden" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+        </button>
+        <button id="timeline-next-hour" class="px-2.5 py-2 text-xs font-bold text-[var(--color-ink)] hover:bg-[var(--color-surface-soft)] cursor-pointer transition-colors" title="Add 1 hour">+1h</button>
+      </div>
+
+      <!-- Add City Dropdown -->
+      <div class="relative">
+        <select id="timeline-add-city" class="appearance-none bg-[var(--color-rausch)] hover:bg-[var(--color-rausch-active)] text-white text-xs font-semibold px-4 py-2.5 pr-8 rounded-lg cursor-pointer transition-colors shadow-sm outline-none">
+          <option value="" disabled selected>+ Add City</option>
+        </select>
+        <span class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white text-xs">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Interactive World Map View (Full Width & Crisp) ─── -->
+  <div class="relative w-full rounded-2xl overflow-hidden bg-[var(--color-surface-soft)] border border-[var(--color-hairline)] shadow-card mb-8 select-none">
+    
+    <!-- Map Header overlay -->
+    <div class="absolute top-3 left-4 z-20 flex items-center gap-2">
+      <div class="px-3 py-1 rounded-md bg-slate-900/85 backdrop-blur-md border border-slate-700/60 text-[11px] font-bold text-slate-200 tracking-wider uppercase flex items-center gap-2 shadow-sm">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>World City Time Map</span>
+      </div>
+    </div>
+
+    <!-- Map Date / UTC badge -->
+    <div class="absolute top-3 right-4 z-20">
+      <div id="map-utc-indicator" class="px-3 py-1 rounded-md bg-slate-900/85 backdrop-blur-md border border-slate-700/60 text-xs font-mono font-bold text-amber-300 shadow-sm">
+        UTC 12:00
+      </div>
+    </div>
+
+    <!-- Map Image Container -->
+    <div class="relative w-full overflow-hidden flex items-center justify-center bg-sky-100 dark:bg-slate-900">
+      <img 
+        src="/world-map-1.png" 
+        alt="World Political Map" 
+        class="w-full h-auto block select-none pointer-events-none"
+        loading="eager"
+      />
+
+      <!-- Interactive City Marker Pins Container -->
+      <div id="map-pins-container" class="absolute inset-0 pointer-events-none">
+        <!-- Pins will be dynamically injected here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── 24-Hour Multi-City Timeline Tracks ─── -->
+  <div class="w-full bg-[var(--color-canvas)] border border-[var(--color-hairline)] rounded-2xl shadow-card overflow-hidden">
+    
+    <!-- Timeline Toolbar & Legend -->
+    <div class="px-5 py-4 bg-[var(--color-surface-soft)] border-b border-[var(--color-hairline-soft)] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <!-- Master Drag Scrub Slider Info -->
+      <div class="flex items-center gap-3">
+        <span class="text-xs font-bold text-[var(--color-ink)] uppercase tracking-wider">Synchronized Time Scrubber</span>
+        <span class="text-xs text-[var(--color-muted)]">Click or drag anywhere on the timeline</span>
+      </div>
+
+      <!-- Legend -->
+      <div class="flex items-center gap-4 text-xs font-medium">
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500/50"></span>
+          <span class="text-[var(--color-body)]">Work (9-17)</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded bg-amber-500/20 border border-amber-500/40"></span>
+          <span class="text-[var(--color-body)]">Awake</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded bg-slate-700/20 dark:bg-slate-700/60 border border-slate-500/30"></span>
+          <span class="text-[var(--color-body)]">Night</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Master 24-Hour Slider Bar -->
+    <div class="px-5 pt-5 pb-3 bg-[var(--color-canvas)] border-b border-[var(--color-hairline-soft)]">
+      <div class="relative flex items-center">
+        <input 
+          type="range" 
+          id="master-time-slider" 
+          min="0" 
+          max="1439" 
+          step="15" 
+          value="720" 
+          class="timeline-range-slider w-full h-3 bg-[var(--color-surface-strong)] rounded-lg appearance-none cursor-pointer accent-[var(--color-rausch)]"
+          aria-label="24-Hour Master Time Slider"
+        />
+      </div>
+
+      <!-- Hour markers 00 to 24 along slider -->
+      <div class="flex justify-between items-center text-[10px] font-mono font-bold text-[var(--color-muted)] mt-1.5 px-1 select-none">
+        <span>00:00</span>
+        <span class="hidden sm:inline">03:00</span>
+        <span>06:00</span>
+        <span class="hidden sm:inline">09:00</span>
+        <span>12:00</span>
+        <span class="hidden sm:inline">15:00</span>
+        <span>18:00</span>
+        <span class="hidden sm:inline">21:00</span>
+        <span>24:00</span>
+      </div>
+    </div>
+
+    <!-- City Tracks Container -->
+    <div id="city-tracks-list" class="divide-y divide-[var(--color-hairline-soft)] overflow-x-auto">
+      <!-- City track rows will be injected dynamically -->
+    </div>
+
+    <!-- Timeline Footer / Summary of Overlap -->
+    <div class="px-5 py-4 bg-[var(--color-surface-soft)] border-t border-[var(--color-hairline-soft)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--color-muted)]">
+      <div id="overlap-indicator" class="font-medium text-[var(--color-ink)] flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span id="overlap-text">Evaluating optimal meeting window across selected cities...</span>
+      </div>
+      <div class="text-[11px] text-[var(--color-muted)]">
+        Tip: Hover or tap any hour block to jump to that moment
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<style>
+  /* Custom slider track & thumb */
+  .timeline-range-slider::-webkit-slider-thumb {
+    appearance: none;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-rausch);
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    cursor: grab;
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+  }
+  .timeline-range-slider::-webkit-slider-thumb:active {
+    cursor: grabbing;
+    transform: scale(1.15);
+    box-shadow: 0 0 0 6px var(--color-rausch-soft);
+  }
+
+  .timeline-range-slider::-moz-range-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--color-rausch);
+    border: 3px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    cursor: grab;
+  }
+
+  /* Scrubber vertical line animation */
+  .scrubber-cursor {
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--color-rausch);
+    z-index: 10;
+    box-shadow: 0 0 8px var(--color-rausch);
+  }
+
+  /* Map Pin Styling matching reference */
+  :global(.map-city-pin) {
+    position: absolute;
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+    transition: transform 0.15s ease, z-index 0.15s ease;
+    z-index: 10;
+    pointer-events: auto;
+  }
+  :global(.map-city-pin:hover) {
+    transform: translate(-50%, -105%) scale(1.06);
+    z-index: 30;
+  }
+  :global(.map-pin-pill) {
+    background: rgba(15, 23, 42, 0.92);
+    border: 1px solid rgba(51, 65, 85, 0.8);
+    backdrop-filter: blur(8px);
+    color: #f8fafc;
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  }
+  :global(.map-pin-needle) {
+    width: 2px;
+    height: 10px;
+    background: var(--color-rausch);
+    margin: 0 auto;
+    position: relative;
+  }
+  :global(.map-pin-needle::after) {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: -2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-rausch);
+    box-shadow: 0 0 6px var(--color-rausch);
+  }
+
+  /* Hour block styling */
+  :global(.hour-cell) {
+    flex: 1;
+    min-width: 26px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    cursor: pointer;
+    user-select: none;
+    transition: filter 0.1s ease, transform 0.1s ease;
+    border-right: 1px solid var(--color-hairline-soft);
+  }
+  :global(.hour-cell:hover) {
+    filter: brightness(1.15);
+    z-index: 5;
+  }
+  :global(.hour-cell.is-current-active) {
+    outline: 2px solid var(--color-rausch);
+    outline-offset: -2px;
+    font-weight: 800;
+  }
+</style>
+
+<script>
+  interface CityConfig {
+    id: string;
+    city: string;
+    country: string;
+    tz: string;
+    mapX: number;
+    mapY: number;
+  }
+
+  const ALL_CITIES: CityConfig[] = [
+    { id: 'ny', city: 'New York', country: 'USA', tz: 'America/New_York', mapX: 25.6, mapY: 44.7 },
+    { id: 'london', city: 'London', country: 'UK', tz: 'Europe/London', mapX: 46.4, mapY: 36.2 },
+    { id: 'tokyo', city: 'Tokyo', country: 'Japan', tz: 'Asia/Tokyo', mapX: 81.3, mapY: 47.3 },
+    { id: 'sf', city: 'San Francisco', country: 'USA', tz: 'America/Los_Angeles', mapX: 14.8, mapY: 45.8 },
+    { id: 'la', city: 'Los Angeles', country: 'USA', tz: 'America/Los_Angeles', mapX: 15.8, mapY: 48.0 },
+    { id: 'chicago', city: 'Chicago', country: 'USA', tz: 'America/Chicago', mapX: 22.5, mapY: 43.5 },
+    { id: 'paris', city: 'Paris', country: 'France', tz: 'Europe/Paris', mapX: 47.9, mapY: 39.6 },
+    { id: 'berlin', city: 'Berlin', country: 'Germany', tz: 'Europe/Berlin', mapX: 50.1, mapY: 37.3 },
+    { id: 'dubai', city: 'Dubai', country: 'UAE', tz: 'Asia/Dubai', mapX: 58.3, mapY: 52.0 },
+    { id: 'mumbai', city: 'Mumbai', country: 'India', tz: 'Asia/Kolkata', mapX: 64.6, mapY: 56.0 },
+    { id: 'singapore', city: 'Singapore', country: 'Singapore', tz: 'Asia/Singapore', mapX: 72.8, mapY: 62.2 },
+    { id: 'sydney', city: 'Sydney', country: 'Australia', tz: 'Australia/Sydney', mapX: 84.3, mapY: 78.6 },
+    { id: 'auckland', city: 'Auckland', country: 'New Zealand', tz: 'Pacific/Auckland', mapX: 91.0, mapY: 80.3 },
+    { id: 'saopaulo', city: 'São Paulo', country: 'Brazil', tz: 'America/Sao_Paulo', mapX: 31.9, mapY: 73.0 },
+    { id: 'buenosaires', city: 'Buenos Aires', country: 'Argentina', tz: 'America/Argentina/Buenos_Aires', mapX: 30.5, mapY: 78.6 },
+    { id: 'cairo', city: 'Cairo', country: 'Egypt', tz: 'Africa/Cairo', mapX: 52.0, mapY: 49.2 },
+    { id: 'moscow', city: 'Moscow', country: 'Russia', tz: 'Europe/Moscow', mapX: 55.2, mapY: 32.2 },
+    { id: 'honolulu', city: 'Honolulu', country: 'USA', tz: 'Pacific/Honolulu', mapX: 6.7, mapY: 54.8 },
+    { id: 'toronto', city: 'Toronto', country: 'Canada', tz: 'America/Toronto', mapX: 25.2, mapY: 42.4 },
+    { id: 'bangkok', city: 'Bangkok', country: 'Thailand', tz: 'Asia/Bangkok', mapX: 73.2, mapY: 56.5 },
+    { id: 'hongkong', city: 'Hong Kong', country: 'HK', tz: 'Asia/Hong_Kong', mapX: 75.8, mapY: 53.2 },
+    { id: 'seoul', city: 'Seoul', country: 'South Korea', tz: 'Asia/Seoul', mapX: 79.1, mapY: 46.4 },
+    { id: 'johannesburg', city: 'Johannesburg', country: 'South Africa', tz: 'Africa/Johannesburg', mapX: 51.6, mapY: 75.8 },
+  ];
+
+  // Default initial active cities (matches user screenshot: New York, London, Tokyo)
+  let activeCityIds = ['ny', 'london', 'tokyo'];
+
+  // Restore stored cities if available
+  const savedCities = localStorage.getItem('timeline_cities');
+  if (savedCities) {
+    try {
+      const parsed = JSON.parse(savedCities);
+      if (Array.isArray(parsed) && parsed.length > 0) activeCityIds = parsed;
+    } catch {}
+  }
+
+  // State
+  let baseUTCMinutes = 720; // 12:00 UTC default
+  let isPlaying = false;
+  let playTimer: any = null;
+
+  // DOM elements
+  const slider = document.getElementById('master-time-slider') as HTMLInputElement | null;
+  const baseDisplay = document.getElementById('timeline-base-display');
+  const mapUtcIndicator = document.getElementById('map-utc-indicator');
+  const nowBtn = document.getElementById('timeline-now-btn');
+  const prevHourBtn = document.getElementById('timeline-prev-hour');
+  const nextHourBtn = document.getElementById('timeline-next-hour');
+  const playBtn = document.getElementById('timeline-play-btn');
+  const playIcon = document.getElementById('timeline-play-icon');
+  const pauseIcon = document.getElementById('timeline-pause-icon');
+  const addCitySelect = document.getElementById('timeline-add-city') as HTMLSelectElement | null;
+  const tracksList = document.getElementById('city-tracks-list');
+  const mapPinsContainer = document.getElementById('map-pins-container');
+  const overlapText = document.getElementById('overlap-text');
+
+  // Populate Add City dropdown
+  if (addCitySelect) {
+    ALL_CITIES.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.city}, ${c.country}`;
+      addCitySelect.appendChild(opt);
+    });
+
+    addCitySelect.addEventListener('change', () => {
+      const selectedId = addCitySelect.value;
+      if (selectedId && !activeCityIds.includes(selectedId)) {
+        activeCityIds.push(selectedId);
+        saveAndRender();
+      }
+      addCitySelect.value = '';
+    });
+  }
+
+  function saveAndRender() {
+    localStorage.setItem('timeline_cities', JSON.stringify(activeCityIds));
+    render();
+  }
+
+  // Synchronize baseUTCMinutes to current real world UTC time
+  function setBaseToNow() {
+    const now = new Date();
+    baseUTCMinutes = now.getUTCHours() * 60 + now.getUTCMinutes();
+    if (slider) slider.value = String(baseUTCMinutes);
+    render();
+  }
+
+  // Format minutes (0-1439) into HH:MM
+  function formatMinutesToTime(totalMins: number) {
+    const mins = ((Math.floor(totalMins) % 1440) + 1440) % 1440;
+    const h = Math.floor(mins / 60);
+    const m = Math.floor(mins % 60);
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
+  // Format 12-hour AM/PM
+  function format12Hour(hours24: number, mins: number) {
+    const h12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    const ampm = hours24 >= 12 ? 'PM' : 'AM';
+    return `${h12}:${String(mins).padStart(2, '0')} ${ampm}`;
+  }
+
+  // Get local date object for a timezone given base UTC minutes
+  function getCityDate(tz: string, utcMinutes: number) {
+    const now = new Date();
+    const utcDate = new Date(Date.UTC(
+      now.getUTCFullYear(),
+      now.getUTCMonth(),
+      now.getUTCDate(),
+      Math.floor(utcMinutes / 60),
+      Math.floor(utcMinutes % 60),
+      0
+    ));
+    return new Date(utcDate.toLocaleString('en-US', { timeZone: tz }));
+  }
+
+  // Render Map City Pins
+  function renderMapPins() {
+    if (!mapPinsContainer) return;
+    mapPinsContainer.innerHTML = '';
+
+    activeCityIds.forEach(id => {
+      const city = ALL_CITIES.find(c => c.id === id);
+      if (!city) return;
+
+      const localDate = getCityDate(city.tz, baseUTCMinutes);
+      const time12 = format12Hour(localDate.getHours(), localDate.getMinutes());
+
+      const pinEl = document.createElement('div');
+      pinEl.className = 'map-city-pin';
+      pinEl.style.left = `${city.mapX}%`;
+      pinEl.style.top = `${city.mapY}%`;
+      pinEl.innerHTML = `
+        <div class="map-pin-pill">
+          <span class="text-[11px] text-white">${city.city}</span>
+          <span class="text-[10px] text-amber-300 font-mono">${time12}</span>
+        </div>
+        <div class="map-pin-needle"></div>
+      `;
+
+      pinEl.addEventListener('click', () => {
+        const track = document.getElementById(`track-${city.id}`);
+        if (track) {
+          track.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          track.classList.add('bg-[var(--color-rausch-soft)]');
+          setTimeout(() => track.classList.remove('bg-[var(--color-rausch-soft)]'), 1000);
+        }
+      });
+
+      mapPinsContainer.appendChild(pinEl);
+    });
+  }
+
+  // Render Multi-City 24h Comparison Tracks
+  function renderTracks() {
+    if (!tracksList) return;
+    tracksList.innerHTML = '';
+
+    const currentUTCMinutes = baseUTCMinutes;
+
+    let overlapWorkingCount = 0;
+    const totalActiveCities = activeCityIds.length;
+
+    activeCityIds.forEach((id) => {
+      const city = ALL_CITIES.find(c => c.id === id);
+      if (!city) return;
+
+      const localDate = getCityDate(city.tz, currentUTCMinutes);
+      const localHours = localDate.getHours();
+      const localMins = localDate.getMinutes();
+      const time12Str = format12Hour(localHours, localMins);
+      const time24Str = `${String(localHours).padStart(2, '0')}:${String(localMins).padStart(2, '0')}`;
+
+      const utcOffsetHours = (new Date(localDate.toLocaleString('en-US', { timeZone: city.tz })).getTime() - 
+                              new Date(localDate.toLocaleString('en-US', { timeZone: 'UTC' })).getTime()) / 3600000;
+      const offsetStr = utcOffsetHours >= 0 ? `UTC+${utcOffsetHours}` : `UTC${utcOffsetHours}`;
+
+      const refDate = new Date();
+      const utcDay = refDate.getUTCDate();
+      const cityDay = localDate.getDate();
+      let dayBadge = '';
+      if (cityDay > utcDay || (utcDay > 25 && cityDay === 1)) {
+        dayBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--color-rausch-soft)] text-[var(--color-rausch)]">+1 Day</span>`;
+      } else if (cityDay < utcDay || (cityDay > 25 && utcDay === 1)) {
+        dayBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[var(--color-surface-strong)] text-[var(--color-muted)]">-1 Day</span>`;
+      }
+
+      if (localHours >= 9 && localHours < 17) {
+        overlapWorkingCount++;
+      }
+
+      const row = document.createElement('div');
+      row.id = `track-${city.id}`;
+      row.className = 'flex flex-col lg:flex-row lg:items-center p-4 hover:bg-[var(--color-surface-soft)] transition-colors gap-3 relative';
+
+      const infoCol = document.createElement('div');
+      infoCol.className = 'w-full lg:w-64 flex items-center justify-between lg:justify-start lg:gap-4 flex-shrink-0';
+      infoCol.innerHTML = `
+        <div class="flex items-center gap-2.5 min-w-0">
+          <button class="remove-city-btn w-6 h-6 rounded-full hover:bg-[var(--color-hairline)] text-[var(--color-muted)] flex items-center justify-center cursor-pointer transition-colors text-xs font-bold" data-id="${city.id}" title="Remove ${city.city}">✕</button>
+          <div>
+            <div class="font-bold text-sm text-[var(--color-ink)] truncate flex items-center gap-1.5">
+              <span>${city.city}</span>
+              ${dayBadge}
+            </div>
+            <div class="text-[11px] text-[var(--color-muted)] font-medium flex items-center gap-1.5">
+              <span>${city.country}</span>
+              <span>·</span>
+              <span>${offsetStr}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-right lg:ml-auto">
+          <div class="text-base font-extrabold text-[var(--color-ink)] font-mono">${time12Str}</div>
+          <div class="text-[10px] text-[var(--color-muted)] font-mono">${time24Str}</div>
+        </div>
+      `;
+
+      const gridCol = document.createElement('div');
+      gridCol.className = 'flex-1 overflow-x-auto relative flex items-center rounded-lg border border-[var(--color-hairline-soft)] bg-[var(--color-canvas)] shadow-inner';
+
+      for (let h = 0; h < 24; h++) {
+        const cell = document.createElement('div');
+        cell.className = 'hour-cell';
+        
+        let bgStyle = '';
+        let textStyle = '';
+        if (h >= 9 && h < 17) {
+          bgStyle = 'background: rgba(16, 185, 129, 0.15); color: rgb(5, 150, 105);';
+        } else if ((h >= 7 && h < 9) || (h >= 17 && h < 22)) {
+          bgStyle = 'background: rgba(245, 158, 11, 0.12); color: rgb(217, 119, 6);';
+        } else {
+          bgStyle = 'background: rgba(100, 116, 139, 0.08); color: rgb(148, 163, 184);';
+        }
+
+        if (h === localHours) {
+          cell.classList.add('is-current-active');
+        }
+
+        cell.style.cssText = bgStyle + textStyle;
+        cell.textContent = String(h).padStart(2, '0');
+        cell.title = `${city.city} at ${h}:00 local time`;
+
+        cell.addEventListener('click', () => {
+          const offsetHours = utcOffsetHours;
+          let targetUTCHour = (h - offsetHours + 24) % 24;
+          baseUTCMinutes = Math.floor(targetUTCHour * 60);
+          if (slider) slider.value = String(baseUTCMinutes);
+          render();
+        });
+
+        gridCol.appendChild(cell);
+      }
+
+      row.appendChild(infoCol);
+      row.appendChild(gridCol);
+      tracksList.appendChild(row);
+    });
+
+    document.querySelectorAll('.remove-city-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idToRemove = (e.currentTarget as HTMLElement).dataset.id;
+        if (idToRemove && activeCityIds.length > 1) {
+          activeCityIds = activeCityIds.filter(id => id !== idToRemove);
+          saveAndRender();
+        }
+      });
+    });
+
+    if (overlapText) {
+      if (totalActiveCities === 0) {
+        overlapText.textContent = 'Please add at least one city.';
+      } else if (overlapWorkingCount === totalActiveCities) {
+        overlapText.innerHTML = `<strong class="text-emerald-500">⭐ Optimal Meeting Time!</strong> All ${totalActiveCities} cities are within regular working hours (9:00 - 17:00).`;
+      } else if (overlapWorkingCount > 0) {
+        overlapText.textContent = `${overlapWorkingCount} of ${totalActiveCities} cities are currently in business hours.`;
+      } else {
+        overlapText.textContent = `No cities currently in business hours (outside 9:00 - 17:00).`;
+      }
+    }
+  }
+
+  function render() {
+    const utcTimeStr = formatMinutesToTime(baseUTCMinutes);
+    if (baseDisplay) baseDisplay.textContent = `${utcTimeStr} (UTC)`;
+    if (mapUtcIndicator) mapUtcIndicator.textContent = `UTC ${utcTimeStr}`;
+
+    renderMapPins();
+    renderTracks();
+  }
+
+  slider?.addEventListener('input', () => {
+    baseUTCMinutes = Number(slider.value);
+    render();
+  });
+
+  nowBtn?.addEventListener('click', setBaseToNow);
+
+  prevHourBtn?.addEventListener('click', () => {
+    baseUTCMinutes = (baseUTCMinutes - 60 + 1440) % 1440;
+    if (slider) slider.value = String(baseUTCMinutes);
+    render();
+  });
+
+  nextHourBtn?.addEventListener('click', () => {
+    baseUTCMinutes = (baseUTCMinutes + 60) % 1440;
+    if (slider) slider.value = String(baseUTCMinutes);
+    render();
+  });
+
+  playBtn?.addEventListener('click', () => {
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      playIcon?.classList.add('hidden');
+      pauseIcon?.classList.remove('hidden');
+      playTimer = setInterval(() => {
+        baseUTCMinutes = (baseUTCMinutes + 15) % 1440;
+        if (slider) slider.value = String(baseUTCMinutes);
+        render();
+      }, 200);
+    } else {
+      playIcon?.classList.remove('hidden');
+      pauseIcon?.classList.add('hidden');
+      if (playTimer) clearInterval(playTimer);
+    }
+  });
+
+  setBaseToNow();
+</script>
