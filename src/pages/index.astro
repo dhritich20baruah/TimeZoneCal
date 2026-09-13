@@ -2,31 +2,32 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import TimezoneConverter from '../components/TimezoneConverter.astro';
 import TimelineSlider from '../components/TimelineSlider.astro';
+import MeetingPlanner from '../components/MeetingPlanner.astro';
 
 const features = [
+  'Golden Hour Meeting Planner',
   '24-Hour Timeline Slider',
   'Interactive World Map',
   'Simultaneous Multi-City Sync',
-  'Working Hours Meeting Planner',
   'All 38 Timezones',
-  'DST-Aware & Instant'
+  'One-Click Calendar Invites'
 ];
 
 const steps = [
   { 
     step: '1', 
     title: 'Select or Add Cities', 
-    body: 'Pick from 23+ major global business hubs or add your custom cities. Each city appears instantly on the interactive world map and timeline.' 
+    body: 'Pick from popular team routes (e.g. London ⇄ Tokyo, SF ⇄ Sydney) or add custom global cities to compare schedules.' 
   },
   { 
     step: '2', 
-    title: 'Drag the 24-Hour Slider', 
-    body: 'Scrub horizontally across the 24 hours of the day. All selected cities, live map pin badges, and dates shift simultaneously in real time.' 
+    title: 'Find Golden Working Overlaps', 
+    body: 'Our algorithm automatically highlights top recommended Golden Windows where all team members are in business hours (9 AM – 5 PM).' 
   },
   { 
     step: '3', 
-    title: 'Find Perfect Meeting Overlaps', 
-    body: 'Color-coded visual blocks highlight working hours (9:00–17:00), awake hours, and night windows so you never schedule calls at 3:00 AM.' 
+    title: 'Export Invites with 1 Click', 
+    body: 'Generate instant Google Calendar and Outlook links, download .ICS files, or copy bulleted local time summaries for Slack and email.' 
   },
 ];
 
@@ -39,20 +40,24 @@ const pageLinks = [
 
 const faqItems = [
   {
+    q: 'How does the "Golden Hour" Meeting Planner find overlapping working hours?',
+    a: 'The Golden Hour Planner analyzes the local time of all selected cities across every hour of your chosen date. It scores each time slot based on availability (Green for 9 AM–5 PM business hours, Yellow for 7–9 AM & 5–8 PM flexible hours, Red for 8 PM–7 AM sleep) and automatically recommends the top overlapping windows where all participants are awake and working.'
+  },
+  {
+    q: 'What is the best meeting time between London and Tokyo?',
+    a: 'Because London (UTC+0 / UTC+1) and Tokyo (UTC+9) are 8 to 9 hours apart, the optimal "Golden Hour" overlap occurs between 8:00 AM – 9:00 AM London time, which corresponds to 5:00 PM – 6:00 PM Tokyo time (or 4:00 PM – 5:00 PM during British Summer Time). The Golden Hour planner highlights this slot automatically.'
+  },
+  {
+    q: 'Can I export scheduled meetings directly to Google Calendar, Outlook, or Apple Calendar?',
+    a: 'Yes! Once you pick a time slot in the Golden Hour Meeting Planner, click "Add to Google Calendar" or "Add to Outlook" for an instant pre-filled event link, or click "Download .ICS File" for Apple Calendar and other desktop calendar apps.'
+  },
+  {
     q: 'How does the 24-hour horizontal timeline slider work?',
     a: 'The 24-hour timeline slider acts as a synchronized master scrubber. When you drag the slider or click any hour block, the local time, date (+1/-1 day), and working status update simultaneously across all selected cities on both the timeline and the world map.'
   },
   {
-    q: 'How do the color-coded hour strips help find optimal meeting times?',
-    a: 'Each city track is segmented into 24 one-hour blocks: Green represents standard business hours (9:00 AM – 5:00 PM), Amber represents personal/awake hours (7:00–9:00 AM & 5:00–10:00 PM), and Slate represents nighttime/sleep hours. Look for the vertical slice where all cities display green to find the ideal overlapping meeting window.'
-  },
-  {
-    q: 'Can I add, remove, or customize the cities on the timeline and map?',
-    a: 'Yes! Use the "+ Add City" button to select from major global metropolitan areas (New York, London, Tokyo, San Francisco, Dubai, Mumbai, Singapore, Sydney, etc.). You can remove cities by clicking the "✕" button next to their name. Your selection is automatically saved in your browser.'
-  },
-  {
-    q: 'How do I switch between the 24-Hour Timeline and the Direct Pairwise Converter?',
-    a: 'Use the view switcher tabs at the top of the converter area. Click "24-Hour Timeline & World Map" for multi-city visual comparison, or "Direct Timezone Converter" for a traditional two-location instant conversion tool.'
+    q: 'How do I switch between the Timeline, Meeting Planner, and Pairwise Converter?',
+    a: 'Use the view switcher tabs at the top of the tool. Click "24-Hour Timeline & World Map" for visual scrubbing, "Golden Hour Meeting Planner" for team scheduling and calendar exports, or "Direct Timezone Converter" for rapid two-city calculations.'
   },
   {
     q: 'Does the converter automatically adjust for Daylight Saving Time (DST)?',
@@ -69,10 +74,6 @@ const faqItems = [
   {
     q: 'What does +1 Day or -1 Day on a city badge mean?',
     a: 'When converting times across significant time differences (like Los Angeles and Tokyo), the local date in the destination city may be on the next calendar day (+1 Day) or previous day (-1 Day) relative to the reference time.'
-  },
-  {
-    q: 'Can I convert future or past dates, or jump to specific times like 9:00 AM or Noon?',
-    a: 'Yes. In the Direct Converter view, you can pick any past or future calendar date. On the 24-Hour Timeline Slider, you can click "Current Time", step by +/-1 hour, use the "Play" simulation button, or click directly on any hour block.'
   },
   {
     q: 'What is the best timezone reference to use for international teams?',
@@ -96,9 +97,9 @@ const faqSchema = {
 ---
 
 <BaseLayout 
-  title="24-Hour World Time Zone Converter & Interactive Map Slider" 
-  description="Interactive 24-hour horizontal timeline slider and world map time zone converter. Shift hours across multiple global cities simultaneously, find overlapping meeting times, and calculate accurate time differences."
-  keywords="time zone converter, 24 hour timezone slider, world time map, interactive timeline slider, time difference calculator, meeting planner time converter, multiple time zone converter, UTC time converter, world time buddy alternative"
+  title="24-Hour World Time Zone Converter & Golden Hour Meeting Planner" 
+  description="Interactive 24-hour horizontal timeline slider, Golden Hour meeting planner for remote teams, and world map time zone converter. Find overlapping working hours across multiple global cities simultaneously."
+  keywords="time zone converter, golden hour meeting planner, remote team meeting scheduler, best meeting time between london and tokyo, 24 hour timezone slider, world time map, interactive timeline slider, time difference calculator, multiple time zone converter, world time buddy alternative"
 >
 
   <!-- Inject JSON-LD Structured Data -->
@@ -108,10 +109,10 @@ const faqSchema = {
   <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft); padding:var(--spacing-section) var(--spacing-base);">
     <div style="max-width:var(--width-page); margin:0 auto; text-align:center;">
       <h1 style="font-size:34px; font-weight:800; color:var(--color-ink); line-height:1.2; margin-bottom:var(--spacing-sm);">
-        24-Hour World Time Zone Converter &amp; Interactive Map
+        24-Hour World Time Zone Converter &amp; Meeting Planner
       </h1>
       <p style="font-size:18px; color:var(--color-muted); line-height:1.6; max-width:680px; margin:0 auto var(--spacing-lg) auto;">
-        Compare multiple cities simultaneously, drag the 24-hour timeline slider to shift world hours in real time, and easily schedule meetings across global time zones.
+        Compare global cities simultaneously, find overlapping "Golden Hours" for remote team meetings, and schedule across time zones with one click.
       </p>
 
       <!-- Feature pills -->
@@ -126,35 +127,51 @@ const faqSchema = {
     </div>
   </div>
 
-  <!-- ─── Interactive Views: Timeline Slider & Pair Converter ─── -->
+  <!-- ─── Interactive Views: 3-Way Switcher Tabs ─── -->
   <div class="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 pt-8">
-    <div class="inline-flex p-1 rounded-xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline)] shadow-sm gap-1">
-      <button id="tab-timeline-btn" class="px-5 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer bg-[var(--color-canvas)] text-[var(--color-rausch)] shadow-sm flex items-center gap-2">
+    <div class="inline-flex flex-wrap p-1 rounded-xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline)] shadow-sm gap-1">
+      <button id="tab-timeline-btn" class="px-4 sm:px-5 py-2.5 rounded-lg text-sm font-bold transition-all cursor-pointer bg-[var(--color-canvas)] text-[var(--color-rausch)] shadow-sm flex items-center gap-2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="10"></circle>
           <line x1="2" y1="12" x2="22" y2="12"></line>
           <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
         </svg>
-        24-Hour Timeline &amp; World Map
+        24-Hour Timeline &amp; Map
       </button>
-      <button id="tab-converter-btn" class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer text-[var(--color-muted)] hover:text-[var(--color-ink)] flex items-center gap-2">
+
+      <button id="tab-planner-btn" class="px-4 sm:px-5 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer text-[var(--color-muted)] hover:text-[var(--color-ink)] flex items-center gap-2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+        🤝 Golden Hour Meeting Planner
+      </button>
+
+      <button id="tab-converter-btn" class="px-4 sm:px-5 py-2.5 rounded-lg text-sm font-semibold transition-all cursor-pointer text-[var(--color-muted)] hover:text-[var(--color-ink)] flex items-center gap-2">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="17 1 21 5 17 9"></polyline>
           <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
           <polyline points="7 23 3 19 7 15"></polyline>
           <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
         </svg>
-        Direct Timezone Converter
+        Direct Pair Converter
       </button>
     </div>
   </div>
 
-  <!-- ─── Timeline Slider View ─── -->
+  <!-- ─── View 1: Timeline Slider ─── -->
   <div id="view-timeline" class="block">
     <TimelineSlider />
   </div>
 
-  <!-- ─── Direct Converter View ─── -->
+  <!-- ─── View 2: Golden Hour Meeting Planner ─── -->
+  <div id="view-planner" class="hidden">
+    <MeetingPlanner />
+  </div>
+
+  <!-- ─── View 3: Direct Converter ─── -->
   <div id="view-converter" class="hidden">
     <TimezoneConverter />
   </div>
@@ -266,27 +283,38 @@ const faqSchema = {
 
 <script>
   const tabTimelineBtn = document.getElementById('tab-timeline-btn');
+  const tabPlannerBtn = document.getElementById('tab-planner-btn');
   const tabConverterBtn = document.getElementById('tab-converter-btn');
+
   const viewTimeline = document.getElementById('view-timeline');
+  const viewPlanner = document.getElementById('view-planner');
   const viewConverter = document.getElementById('view-converter');
 
-  tabTimelineBtn?.addEventListener('click', () => {
-    viewTimeline?.classList.remove('hidden');
-    viewConverter?.classList.add('hidden');
-    tabTimelineBtn.classList.add('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
-    tabTimelineBtn.classList.remove('text-[var(--color-muted)]');
-    tabConverterBtn?.classList.remove('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
-    tabConverterBtn?.classList.add('text-[var(--color-muted)]');
-  });
+  const allTabs = [
+    { btn: tabTimelineBtn, view: viewTimeline },
+    { btn: tabPlannerBtn, view: viewPlanner },
+    { btn: tabConverterBtn, view: viewConverter }
+  ];
 
-  tabConverterBtn?.addEventListener('click', () => {
-    viewConverter?.classList.remove('hidden');
-    viewTimeline?.classList.add('hidden');
-    tabConverterBtn.classList.add('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
-    tabConverterBtn.classList.remove('text-[var(--color-muted)]');
-    tabTimelineBtn?.classList.remove('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
-    tabTimelineBtn?.classList.add('text-[var(--color-muted)]');
-  });
+  function switchTab(activeTab: { btn: HTMLElement | null, view: HTMLElement | null }) {
+    allTabs.forEach(({ btn, view }) => {
+      if (btn === activeTab.btn) {
+        view?.classList.remove('hidden');
+        view?.classList.add('block');
+        btn?.classList.add('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
+        btn?.classList.remove('text-[var(--color-muted)]');
+      } else {
+        view?.classList.add('hidden');
+        view?.classList.remove('block');
+        btn?.classList.remove('bg-[var(--color-canvas)]', 'text-[var(--color-rausch)]', 'shadow-sm');
+        btn?.classList.add('text-[var(--color-muted)]');
+      }
+    });
+  }
+
+  tabTimelineBtn?.addEventListener('click', () => switchTab(allTabs[0]));
+  tabPlannerBtn?.addEventListener('click', () => switchTab(allTabs[1]));
+  tabConverterBtn?.addEventListener('click', () => switchTab(allTabs[2]));
 </script>
 
 <style>

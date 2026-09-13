@@ -1,0 +1,718 @@
+---
+// MeetingPlanner.astro — "Golden Hour" Remote Team Meeting Planner
+---
+
+<div class="meeting-planner-container w-full max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-6">
+
+  <!-- ─── Header & Meeting Config ─── -->
+  <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
+    <div>
+      <div class="flex items-center gap-2 mb-1">
+        <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+          Remote Team Planner
+        </span>
+        <span class="text-xs text-[var(--color-muted)] font-medium">Find overlapping business hours across time zones</span>
+      </div>
+      <h2 class="text-2xl lg:text-3xl font-extrabold text-[var(--color-ink)] tracking-tight">
+        "Golden Hour" Meeting Planner
+      </h2>
+    </div>
+
+    <!-- Meeting Config Controls: Date, Duration, Add City -->
+    <div class="flex items-center flex-wrap gap-2.5">
+      <!-- Date Picker -->
+      <div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-sm">
+        <label for="planner-date-input" class="text-xs font-bold text-[var(--color-muted)] uppercase">Date:</label>
+        <input 
+          type="date" 
+          id="planner-date-input" 
+          class="bg-transparent text-xs font-semibold text-[var(--color-ink)] outline-none cursor-pointer"
+        />
+      </div>
+
+      <!-- Duration Selector -->
+      <div class="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-sm">
+        <label for="planner-duration-select" class="text-xs font-bold text-[var(--color-muted)] uppercase">Duration:</label>
+        <select id="planner-duration-select" class="bg-transparent text-xs font-semibold text-[var(--color-ink)] outline-none cursor-pointer">
+          <option value="15">15 min</option>
+          <option value="30">30 min</option>
+          <option value="45">45 min</option>
+          <option value="60" selected>1 hour</option>
+          <option value="90">1.5 hours</option>
+          <option value="120">2 hours</option>
+        </select>
+      </div>
+
+      <!-- Add City Dropdown -->
+      <div class="relative">
+        <select id="planner-add-city" class="appearance-none bg-[var(--color-rausch)] hover:bg-[var(--color-rausch-active)] text-white text-xs font-semibold px-4 py-2.5 pr-8 rounded-lg cursor-pointer transition-colors shadow-sm outline-none">
+          <option value="" disabled selected>+ Add Team City</option>
+        </select>
+        <span class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-white text-xs">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Quick Route Presets ─── -->
+  <div class="mb-6">
+    <div class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-2 flex items-center gap-1.5">
+      <span>Popular Remote Team Routes:</span>
+    </div>
+    <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+      <button class="route-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-surface-soft)] hover:bg-[var(--color-canvas)] border border-[var(--color-hairline)] text-[var(--color-ink)] hover:border-[var(--color-rausch)] transition-all cursor-pointer whitespace-nowrap shadow-sm" data-cities="london,tokyo">
+        🇬🇧 London ⇄ 🇯🇵 Tokyo
+      </button>
+      <button class="route-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-surface-soft)] hover:bg-[var(--color-canvas)] border border-[var(--color-hairline)] text-[var(--color-ink)] hover:border-[var(--color-rausch)] transition-all cursor-pointer whitespace-nowrap shadow-sm" data-cities="ny,london">
+        🇺🇸 New York ⇄ 🇬🇧 London
+      </button>
+      <button class="route-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-surface-soft)] hover:bg-[var(--color-canvas)] border border-[var(--color-hairline)] text-[var(--color-ink)] hover:border-[var(--color-rausch)] transition-all cursor-pointer whitespace-nowrap shadow-sm" data-cities="sf,sydney">
+        🇺🇸 San Francisco ⇄ 🇦🇺 Sydney
+      </button>
+      <button class="route-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-surface-soft)] hover:bg-[var(--color-canvas)] border border-[var(--color-hairline)] text-[var(--color-ink)] hover:border-[var(--color-rausch)] transition-all cursor-pointer whitespace-nowrap shadow-sm" data-cities="berlin,singapore">
+        🇩🇪 Berlin ⇄ 🇸🇬 Singapore
+      </button>
+      <button class="route-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-surface-soft)] hover:bg-[var(--color-canvas)] border border-[var(--color-hairline)] text-[var(--color-ink)] hover:border-[var(--color-rausch)] transition-all cursor-pointer whitespace-nowrap shadow-sm" data-cities="ny,mumbai">
+        🇺🇸 New York ⇄ 🇮🇳 Mumbai
+      </button>
+      <button class="route-preset-btn px-3 py-1.5 rounded-lg text-xs font-semibold bg-[var(--color-surface-soft)] hover:bg-[var(--color-canvas)] border border-[var(--color-hairline)] text-[var(--color-ink)] hover:border-[var(--color-rausch)] transition-all cursor-pointer whitespace-nowrap shadow-sm" data-cities="sf,ny,london">
+        🇺🇸 SF ⇄ 🇺🇸 NY ⇄ 🇬🇧 London
+      </button>
+    </div>
+  </div>
+
+  <!-- ─── Top Recommended "Golden Windows" ─── -->
+  <div class="mb-8">
+    <div class="flex items-center justify-between gap-3 mb-3">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-bold text-[var(--color-ink)] uppercase tracking-wider">Top Recommended Meeting Windows</span>
+        <span class="text-xs text-[var(--color-muted)]">(Click to select)</span>
+      </div>
+    </div>
+    
+    <div id="planner-recommendations-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <!-- Recommendation cards injected via JS -->
+    </div>
+  </div>
+
+  <!-- ─── 24-Hour Visual Overlap Matrix Card ─── -->
+  <div class="w-full bg-[var(--color-canvas)] border border-[var(--color-hairline)] rounded-2xl shadow-card overflow-hidden mb-8">
+    
+    <!-- Toolbar with Legend -->
+    <div class="px-5 py-4 bg-[var(--color-surface-soft)] border-b border-[var(--color-hairline-soft)] flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-bold text-[var(--color-ink)] uppercase tracking-wider">Multi-City Overlap Matrix</span>
+        <span class="text-xs text-[var(--color-muted)]">• Tap any hour slot to inspect schedule</span>
+      </div>
+
+      <!-- Traffic-light Legend -->
+      <div class="flex items-center flex-wrap gap-4 text-xs font-semibold">
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded bg-emerald-500 border border-emerald-600"></span>
+          <span class="text-emerald-700 dark:text-emerald-400">Work Hours (9 AM – 5 PM)</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded bg-amber-400 border border-amber-500"></span>
+          <span class="text-amber-700 dark:text-amber-400">Awake / Flexible (7–9 AM & 5–8 PM)</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <span class="w-3 h-3 rounded bg-rose-500 border border-rose-600"></span>
+          <span class="text-rose-700 dark:text-rose-400">Sleep / Unsocial (8 PM – 7 AM)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- UTC reference ruler (00 to 23) -->
+    <div class="flex items-center px-4 py-2 bg-[var(--color-canvas)] border-b border-[var(--color-hairline-soft)] overflow-x-auto text-[11px] font-mono font-bold text-[var(--color-muted)]">
+      <div class="w-48 sm:w-60 flex-shrink-0 text-xs uppercase tracking-wider text-[var(--color-ink)]">
+        UTC Reference Hour
+      </div>
+      <div class="flex-1 flex min-w-[620px]">
+        {Array.from({ length: 24 }).map((_, h) => (
+          <div class="flex-1 text-center py-1 border-r border-[var(--color-hairline-soft)] last:border-r-0">
+            {String(h).padStart(2, '0')}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- City Matrix Grid Rows Container -->
+    <div id="planner-matrix-list" class="divide-y divide-[var(--color-hairline-soft)] overflow-x-auto">
+      <!-- City tracks injected via JS -->
+    </div>
+
+  </div>
+
+  <!-- ─── Selected Meeting Summary & Calendar Export Suite ─── -->
+  <div id="planner-export-card" class="w-full bg-[var(--color-canvas)] border border-[var(--color-hairline)] rounded-2xl shadow-card p-6">
+    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      
+      <!-- Selected Slot Overview -->
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-2">
+          <span id="selected-slot-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+            ⭐ Golden Window Selected
+          </span>
+          <span id="selected-utc-time" class="text-xs font-mono font-bold text-[var(--color-muted)]">
+            UTC 13:00 – 14:00
+          </span>
+        </div>
+        
+        <h3 id="selected-slot-title" class="text-lg sm:text-xl font-bold text-[var(--color-ink)] mb-3">
+          Global Team Meeting
+        </h3>
+
+        <!-- Multi-city localized times list -->
+        <div id="selected-city-times-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row lg:flex-col gap-2.5 flex-shrink-0 lg:w-64">
+        <!-- Google Calendar -->
+        <a id="export-gcal-btn" href="#" target="_blank" rel="noopener noreferrer" class="w-full px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm no-underline">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+          </svg>
+          Add to Google Calendar
+        </a>
+
+        <!-- Outlook Calendar -->
+        <a id="export-outlook-btn" href="#" target="_blank" rel="noopener noreferrer" class="w-full px-4 py-2.5 rounded-xl bg-[#0078d4] hover:bg-[#006cbd] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm no-underline">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M21 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/>
+          </svg>
+          Add to Outlook
+        </a>
+
+        <!-- Download .ICS -->
+        <button id="export-ics-btn" class="w-full px-4 py-2.5 rounded-xl bg-[var(--color-surface-strong)] hover:bg-[var(--color-hairline)] text-[var(--color-ink)] font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer border border-[var(--color-hairline)] shadow-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Download .ICS File
+        </button>
+
+        <!-- Copy Formatted Text -->
+        <button id="export-copy-btn" class="w-full px-4 py-2.5 rounded-xl bg-[var(--color-rausch)] hover:bg-[var(--color-rausch-active)] text-white font-semibold text-xs flex items-center justify-center gap-2 transition-colors cursor-pointer shadow-sm">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy Meeting Invite
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<style>
+  :global(.planner-matrix-cell) {
+    flex: 1;
+    min-width: 25px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s ease, filter 0.1s ease;
+    border-right: 1px solid var(--color-hairline-soft);
+  }
+  :global(.planner-matrix-cell:hover) {
+    filter: brightness(1.15);
+    z-index: 5;
+    transform: scale(1.04);
+  }
+  :global(.planner-matrix-cell.is-selected-hour) {
+    outline: 2.5px solid var(--color-rausch);
+    outline-offset: -2px;
+    box-shadow: inset 0 0 0 2px rgba(255, 56, 92, 0.4);
+    font-weight: 900;
+  }
+</style>
+
+<script>
+  interface PlannerCity {
+    id: string;
+    city: string;
+    country: string;
+    tz: string;
+  }
+
+  const ALL_PLANNER_CITIES: PlannerCity[] = [
+    { id: 'london', city: 'London', country: 'UK', tz: 'Europe/London' },
+    { id: 'tokyo', city: 'Tokyo', country: 'Japan', tz: 'Asia/Tokyo' },
+    { id: 'ny', city: 'New York', country: 'USA', tz: 'America/New_York' },
+    { id: 'sf', city: 'San Francisco', country: 'USA', tz: 'America/Los_Angeles' },
+    { id: 'berlin', city: 'Berlin', country: 'Germany', tz: 'Europe/Berlin' },
+    { id: 'paris', city: 'Paris', country: 'France', tz: 'Europe/Paris' },
+    { id: 'dubai', city: 'Dubai', country: 'UAE', tz: 'Asia/Dubai' },
+    { id: 'mumbai', city: 'Mumbai', country: 'India', tz: 'Asia/Kolkata' },
+    { id: 'singapore', city: 'Singapore', country: 'Singapore', tz: 'Asia/Singapore' },
+    { id: 'sydney', city: 'Sydney', country: 'Australia', tz: 'Australia/Sydney' },
+    { id: 'auckland', city: 'Auckland', country: 'New Zealand', tz: 'Pacific/Auckland' },
+    { id: 'saopaulo', city: 'São Paulo', country: 'Brazil', tz: 'America/Sao_Paulo' },
+    { id: 'chicago', city: 'Chicago', country: 'USA', tz: 'America/Chicago' },
+    { id: 'toronto', city: 'Toronto', country: 'Canada', tz: 'America/Toronto' },
+    { id: 'cairo', city: 'Cairo', country: 'Egypt', tz: 'Africa/Cairo' },
+    { id: 'bangkok', city: 'Bangkok', country: 'Thailand', tz: 'Asia/Bangkok' },
+    { id: 'hongkong', city: 'Hong Kong', country: 'HK', tz: 'Asia/Hong_Kong' },
+    { id: 'seoul', city: 'Seoul', country: 'South Korea', tz: 'Asia/Seoul' },
+    { id: 'johannesburg', city: 'Johannesburg', country: 'South Africa', tz: 'Africa/Johannesburg' },
+    { id: 'honolulu', city: 'Honolulu', country: 'USA', tz: 'Pacific/Honolulu' },
+  ];
+
+  // Default initial active cities
+  let plannerCityIds = ['london', 'tokyo'];
+
+  // Restore stored planner cities
+  const savedPlannerCities = localStorage.getItem('golden_planner_cities');
+  if (savedPlannerCities) {
+    try {
+      const parsed = JSON.parse(savedPlannerCities);
+      if (Array.isArray(parsed) && parsed.length > 0) plannerCityIds = parsed;
+    } catch {}
+  }
+
+  // State
+  let selectedUTCHour = 8; // Default 08:00 UTC (classic London 08:00 - Tokyo 17:00 overlap)
+  let meetingDurationMins = 60;
+  
+  // Date setup (defaults to next business day)
+  const dateInput = document.getElementById('planner-date-input') as HTMLInputElement | null;
+  const durationSelect = document.getElementById('planner-duration-select') as HTMLSelectElement | null;
+  const addCitySelect = document.getElementById('planner-add-city') as HTMLSelectElement | null;
+  const recommendationsList = document.getElementById('planner-recommendations-list');
+  const matrixList = document.getElementById('planner-matrix-list');
+  const selectedTimesList = document.getElementById('selected-city-times-list');
+  const selectedSlotBadge = document.getElementById('selected-slot-badge');
+  const selectedUtcTime = document.getElementById('selected-utc-time');
+  const gcalBtn = document.getElementById('export-gcal-btn') as HTMLAnchorElement | null;
+  const outlookBtn = document.getElementById('export-outlook-btn') as HTMLAnchorElement | null;
+  const icsBtn = document.getElementById('export-ics-btn');
+  const copyBtn = document.getElementById('export-copy-btn');
+
+  function initDate() {
+    if (!dateInput) return;
+    const now = new Date();
+    // Default tomorrow or next Monday
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const yyyy = tomorrow.getFullYear();
+    const mm = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const dd = String(tomorrow.getDate()).padStart(2, '0');
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
+  initDate();
+
+  // Populate Add City dropdown
+  if (addCitySelect) {
+    ALL_PLANNER_CITIES.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `${c.city}, ${c.country}`;
+      addCitySelect.appendChild(opt);
+    });
+
+    addCitySelect.addEventListener('change', () => {
+      const id = addCitySelect.value;
+      if (id && !plannerCityIds.includes(id)) {
+        plannerCityIds.push(id);
+        saveAndRender();
+      }
+      addCitySelect.value = '';
+    });
+  }
+
+  // Presets
+  document.querySelectorAll('.route-preset-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const citiesAttr = (e.currentTarget as HTMLElement).dataset.cities;
+      if (citiesAttr) {
+        plannerCityIds = citiesAttr.split(',');
+        saveAndRender();
+      }
+    });
+  });
+
+  function saveAndRender() {
+    localStorage.setItem('golden_planner_cities', JSON.stringify(plannerCityIds));
+    render();
+  }
+
+  // Get local hour given a selected calendar date and UTC hour
+  function getLocalTimeDetails(tz: string, utcHour: number) {
+    const dateStr = dateInput?.value || new Date().toISOString().split('T')[0];
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const utcDate = new Date(Date.UTC(year, month - 1, day, utcHour, 0, 0));
+    
+    const localDate = new Date(utcDate.toLocaleString('en-US', { timeZone: tz }));
+    const hours = localDate.getHours();
+    const mins = localDate.getMinutes();
+
+    return {
+      hours,
+      mins,
+      localDate,
+      time12: format12(hours, mins),
+      time24: `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`,
+      dayDiff: localDate.getDate() - day
+    };
+  }
+
+  function format12(h: number, m: number) {
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+  }
+
+  // Evaluate suitability of an hour across all cities:
+  // 🟢 Green (Work): 9 to 17 -> score 2
+  // 🟡 Yellow (Flexible): 7-9 & 17-20 -> score 1
+  // 🔴 Red (Sleep): 20-7 -> score -2
+  function evaluateHour(utcHour: number) {
+    let allWork = true;
+    let anySleep = false;
+    let totalScore = 0;
+
+    plannerCityIds.forEach(id => {
+      const city = ALL_PLANNER_CITIES.find(c => c.id === id);
+      if (!city) return;
+      const details = getLocalTimeDetails(city.tz, utcHour);
+      const h = details.hours;
+
+      if (h >= 9 && h < 17) {
+        totalScore += 2;
+      } else if ((h >= 7 && h < 9) || (h >= 17 && h < 20)) {
+        totalScore += 1;
+        allWork = false;
+      } else {
+        totalScore -= 2;
+        allWork = false;
+        anySleep = true;
+      }
+    });
+
+    return {
+      utcHour,
+      allWork,
+      anySleep,
+      totalScore,
+      status: allWork ? 'golden' : (!anySleep ? 'flexible' : 'compromise')
+    };
+  }
+
+  // Calculate and render Top Recommended "Golden Windows"
+  function renderRecommendations() {
+    if (!recommendationsList) return;
+    recommendationsList.innerHTML = '';
+
+    // Score all 24 hours
+    const hourScores = Array.from({ length: 24 }).map((_, h) => evaluateHour(h));
+    
+    // Sort by best score descending
+    const sorted = [...hourScores].sort((a, b) => b.totalScore - a.totalScore);
+    const top3 = sorted.slice(0, 3);
+
+    top3.forEach((item, idx) => {
+      const isGolden = item.status === 'golden';
+      const isFlexible = item.status === 'flexible';
+
+      const card = document.createElement('div');
+      card.className = `p-4 rounded-xl border transition-all cursor-pointer shadow-sm ${
+        item.utcHour === selectedUTCHour 
+          ? 'border-[var(--color-rausch)] bg-[var(--color-rausch-soft)] shadow-md' 
+          : 'border-[var(--color-hairline)] bg-[var(--color-canvas)] hover:border-[var(--color-border-strong)]'
+      }`;
+
+      const badgeColor = isGolden 
+        ? 'bg-emerald-500 text-white' 
+        : (isFlexible ? 'bg-amber-500 text-white' : 'bg-slate-700 text-slate-200');
+
+      const badgeText = isGolden 
+        ? '⭐ Golden Window' 
+        : (isFlexible ? '⚡ Flexible Overlap' : '⚠️ Best Compromise');
+
+      // Local time bullets preview
+      const timesPreview = plannerCityIds.slice(0, 3).map(id => {
+        const city = ALL_PLANNER_CITIES.find(c => c.id === id);
+        if (!city) return '';
+        const det = getLocalTimeDetails(city.tz, item.utcHour);
+        return `<div><strong class="text-[var(--color-ink)]">${city.city}:</strong> ${det.time12}</div>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="flex items-center justify-between gap-2 mb-2">
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${badgeColor}">
+            ${badgeText}
+          </span>
+          <span class="text-xs font-mono font-bold text-[var(--color-muted)]">UTC ${String(item.utcHour).padStart(2, '0')}:00</span>
+        </div>
+        <div class="text-xs text-[var(--color-muted)] space-y-0.5 mb-3 font-medium">
+          ${timesPreview}
+        </div>
+        <div class="flex items-center justify-between text-xs font-bold text-[var(--color-rausch)]">
+          <span>${item.utcHour === selectedUTCHour ? '✓ Currently Selected' : 'Click to Select →'}</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        selectedUTCHour = item.utcHour;
+        render();
+      });
+
+      recommendationsList.appendChild(card);
+    });
+  }
+
+  // Render 24-Hour Matrix Grid
+  function renderMatrix() {
+    if (!matrixList) return;
+    matrixList.innerHTML = '';
+
+    plannerCityIds.forEach(id => {
+      const city = ALL_PLANNER_CITIES.find(c => c.id === id);
+      if (!city) return;
+
+      const selectedDetails = getLocalTimeDetails(city.tz, selectedUTCHour);
+
+      const row = document.createElement('div');
+      row.className = 'flex items-center px-4 py-3 hover:bg-[var(--color-surface-soft)] transition-colors';
+
+      // Left City Label & Selected Local Time
+      const infoCol = document.createElement('div');
+      infoCol.className = 'w-48 sm:w-60 flex-shrink-0 flex items-center justify-between pr-4';
+      infoCol.innerHTML = `
+        <div class="flex items-center gap-2 min-w-0">
+          <button class="remove-planner-city-btn w-5 h-5 rounded-full hover:bg-[var(--color-hairline)] text-[var(--color-muted)] flex items-center justify-center text-xs font-bold cursor-pointer transition-colors" data-id="${city.id}" title="Remove ${city.city}">✕</button>
+          <div class="truncate">
+            <div class="font-bold text-xs sm:text-sm text-[var(--color-ink)] truncate">${city.city}</div>
+            <div class="text-[10px] text-[var(--color-muted)]">${city.country}</div>
+          </div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs font-mono font-extrabold text-[var(--color-ink)]">${selectedDetails.time12}</div>
+        </div>
+      `;
+
+      // 24 Hour blocks grid
+      const gridCol = document.createElement('div');
+      gridCol.className = 'flex-1 flex min-w-[620px] rounded-lg overflow-hidden border border-[var(--color-hairline-soft)] shadow-inner';
+
+      for (let h = 0; h < 24; h++) {
+        const cell = document.createElement('div');
+        cell.className = 'planner-matrix-cell';
+        
+        const cellDetails = getLocalTimeDetails(city.tz, h);
+        const localH = cellDetails.hours;
+
+        // Traffic Light Color Coding:
+        // 🟢 9-17: Emerald Work
+        // 🟡 7-9 & 17-20: Amber Awake
+        // 🔴 20-7: Rose Sleep
+        if (localH >= 9 && localH < 17) {
+          cell.style.backgroundColor = 'rgba(16, 185, 129, 0.22)';
+          cell.style.color = '#047857';
+        } else if ((localH >= 7 && localH < 9) || (localH >= 17 && localH < 20)) {
+          cell.style.backgroundColor = 'rgba(245, 158, 11, 0.22)';
+          cell.style.color = '#b45309';
+        } else {
+          cell.style.backgroundColor = 'rgba(244, 63, 94, 0.16)';
+          cell.style.color = '#be123c';
+        }
+
+        if (h === selectedUTCHour) {
+          cell.classList.add('is-selected-hour');
+        }
+
+        cell.textContent = String(localH).padStart(2, '0');
+        cell.title = `UTC ${h}:00 → ${city.city} ${cellDetails.time12}`;
+
+        cell.addEventListener('click', () => {
+          selectedUTCHour = h;
+          render();
+        });
+
+        gridCol.appendChild(cell);
+      }
+
+      row.appendChild(infoCol);
+      row.appendChild(gridCol);
+      matrixList.appendChild(row);
+    });
+
+    // Remove buttons
+    document.querySelectorAll('.remove-planner-city-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = (e.currentTarget as HTMLElement).dataset.id;
+        if (id && plannerCityIds.length > 1) {
+          plannerCityIds = plannerCityIds.filter(cId => cId !== id);
+          saveAndRender();
+        }
+      });
+    });
+  }
+
+  // Update Summary Card & Export Links
+  function renderExportSuite() {
+    if (!selectedTimesList) return;
+    selectedTimesList.innerHTML = '';
+
+    const dateStr = dateInput?.value || new Date().toISOString().split('T')[0];
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const duration = Number(durationSelect?.value || 60);
+
+    const startUTC = new Date(Date.UTC(year, month - 1, day, selectedUTCHour, 0, 0));
+    const endUTC = new Date(startUTC.getTime() + duration * 60000);
+
+    const endUTCHour = endUTC.getUTCHours();
+    const endUTCMins = endUTC.getUTCMinutes();
+
+    if (selectedUtcTime) {
+      selectedUtcTime.textContent = `UTC ${String(selectedUTCHour).padStart(2, '0')}:00 – ${String(endUTCHour).padStart(2, '0')}:${String(endUTCMins).padStart(2, '0')}`;
+    }
+
+    const evaluation = evaluateHour(selectedUTCHour);
+    if (selectedSlotBadge) {
+      if (evaluation.status === 'golden') {
+        selectedSlotBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30';
+        selectedSlotBadge.textContent = '⭐ Golden Window (All Work Hours)';
+      } else if (evaluation.status === 'flexible') {
+        selectedSlotBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30';
+        selectedSlotBadge.textContent = '⚡ Flexible Overlap (Work + Extended)';
+      } else {
+        selectedSlotBadge.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30';
+        selectedSlotBadge.textContent = '⚠️ Off-Hours Compromise';
+      }
+    }
+
+    const meetingBullets: string[] = [];
+
+    plannerCityIds.forEach(id => {
+      const city = ALL_PLANNER_CITIES.find(c => c.id === id);
+      if (!city) return;
+
+      const startLocal = new Date(startUTC.toLocaleString('en-US', { timeZone: city.tz }));
+      const endLocal = new Date(endUTC.toLocaleString('en-US', { timeZone: city.tz }));
+
+      const startStr = format12(startLocal.getHours(), startLocal.getMinutes());
+      const endStr = format12(endLocal.getHours(), endLocal.getMinutes());
+      const dateFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: city.tz }).format(startLocal);
+
+      meetingBullets.push(`• ${city.city} (${city.country}): ${startStr} – ${endStr} (${dateFmt})`);
+
+      const chip = document.createElement('div');
+      chip.className = 'p-2.5 rounded-lg bg-[var(--color-surface-soft)] border border-[var(--color-hairline)] flex items-center justify-between';
+      chip.innerHTML = `
+        <div class="truncate pr-2">
+          <div class="text-xs font-bold text-[var(--color-ink)] truncate">${city.city}</div>
+          <div class="text-[10px] text-[var(--color-muted)]">${dateFmt}</div>
+        </div>
+        <div class="text-right">
+          <div class="text-xs font-mono font-extrabold text-[var(--color-rausch)]">${startStr}</div>
+          <div class="text-[10px] font-mono text-[var(--color-muted)]">${endStr}</div>
+        </div>
+      `;
+      selectedTimesList.appendChild(chip);
+    });
+
+    // ISO Strings for Calendar URL formatting: YYYYMMDDTHHMMSSZ
+    const formatCalTime = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    const gcalStart = formatCalTime(startUTC);
+    const gcalEnd = formatCalTime(endUTC);
+    const title = encodeURIComponent('Global Team Meeting');
+    const details = encodeURIComponent(
+      `Global Team Meeting coordinated via TimeZoneCal:\n\n${meetingBullets.join('\n')}\n\nUTC Time: ${startUTC.toUTCString()}`
+    );
+
+    // Google Calendar Deeplink
+    if (gcalBtn) {
+      gcalBtn.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${gcalStart}/${gcalEnd}&details=${details}`;
+    }
+
+    // Outlook Deeplink
+    if (outlookBtn) {
+      outlookBtn.href = `https://outlook.live.com/calendar/0/deeplink/compose?subject=${title}&startdt=${startUTC.toISOString()}&enddt=${endUTC.toISOString()}&body=${details}`;
+    }
+
+    // .ICS Generator
+    if (icsBtn) {
+      icsBtn.onclick = () => {
+        const icsContent = [
+          'BEGIN:VCALENDAR',
+          'VERSION:2.0',
+          'PRODID:-//TimeZoneCal//Golden Hour Meeting Planner//EN',
+          'CALSCALE:GREGORIAN',
+          'METHOD:PUBLISH',
+          'BEGIN:VEVENT',
+          `DTSTART:${gcalStart}`,
+          `DTEND:${gcalEnd}`,
+          `SUMMARY:Global Team Meeting`,
+          `DESCRIPTION:${meetingBullets.join('\\n')}`,
+          'STATUS:CONFIRMED',
+          'END:VEVENT',
+          'END:VCALENDAR'
+        ].join('\r\n');
+
+        const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.setAttribute('download', `global-meeting-${dateStr}.ics`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      };
+    }
+
+    // Copy to Clipboard
+    if (copyBtn) {
+      copyBtn.onclick = () => {
+        const copyText = [
+          `📅 Global Team Meeting`,
+          `🗓️ Date: ${dateStr}`,
+          `⏱️ Duration: ${duration} minutes`,
+          `🌐 UTC Reference: ${startUTC.toUTCString()}`,
+          ``,
+          `🌍 Participant Local Times:`,
+          ...meetingBullets,
+          ``,
+          `Coordinated via TimeZoneCal (https://timezonecal.com)`
+        ].join('\n');
+
+        navigator.clipboard.writeText(copyText).then(() => {
+          copyBtn.textContent = '✓ Copied Invite!';
+          setTimeout(() => {
+            copyBtn.innerHTML = `
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              Copy Meeting Invite
+            `;
+          }, 2000);
+        });
+      };
+    }
+  }
+
+  function render() {
+    renderRecommendations();
+    renderMatrix();
+    renderExportSuite();
+  }
+
+  dateInput?.addEventListener('change', render);
+  durationSelect?.addEventListener('change', render);
+
+  // Initial render
+  render();
+</script>
