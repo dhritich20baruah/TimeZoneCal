@@ -1,0 +1,516 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { 
+  getAllCityPairs, 
+  CITIES, 
+  PRIMARY_CITY_SLUGS,
+  type CityInfo 
+} from '../../data/cities';
+
+export function getStaticPaths() {
+  return getAllCityPairs();
+}
+
+interface Props {
+  city1: CityInfo;
+  city2: CityInfo;
+}
+
+const { city1, city2 } = Astro.props;
+
+// Calculate wall clock difference for 24-hour table
+const now = new Date();
+const year = now.getFullYear();
+const month = now.getMonth();
+const day = now.getDate();
+
+function getCityOffsetMins(tz: string, d: Date) {
+  const utc = new Date(d.toLocaleString('en-US', { timeZone: 'UTC' }));
+  const loc = new Date(d.toLocaleString('en-US', { timeZone: tz }));
+  return (loc.getTime() - utc.getTime()) / 60000;
+}
+
+const offset1Mins = getCityOffsetMins(city1.tz, now);
+const offset2Mins = getCityOffsetMins(city2.tz, now);
+const diffMinutes = offset2Mins - offset1Mins;
+const diffHours = diffMinutes / 60;
+const diffAbs = Math.abs(diffHours);
+const diffSign = diffHours >= 0 ? '+' : '-';
+const diffFormatted = diffHours === 0 ? 'Same Time' : `${diffSign}${diffAbs} ${diffAbs === 1 ? 'hour' : 'hours'}`;
+const aheadBehindText = diffHours > 0 
+  ? `${diffAbs} hours ahead of` 
+  : diffHours < 0 
+  ? `${diffAbs} hours behind` 
+  : 'the same time as';
+
+// Build 24-hour comparison schedule
+const scheduleRows = Array.from({ length: 24 }).map((_, h1) => {
+  const totalMins2 = h1 * 60 + diffMinutes;
+  const normMins2 = ((totalMins2 % 1440) + 1440) % 1440;
+  const h2 = Math.floor(normMins2 / 60);
+  const m2 = Math.floor(normMins2 % 60);
+
+  let dayShift = '';
+  if (totalMins2 >= 1440) dayShift = '+1 day';
+  else if (totalMins2 < 0) dayShift = '-1 day';
+
+  const isWork1 = h1 >= 9 && h1 < 17;
+  const isWork2 = h2 >= 9 && h2 < 17;
+  const isGolden = isWork1 && isWork2;
+
+  const isAwake1 = (h1 >= 7 && h1 < 9) || (h1 >= 17 && h1 < 21);
+  const isAwake2 = (h2 >= 7 && h2 < 9) || (h2 >= 17 && h2 < 21);
+  const isFlexible = (isWork1 || isAwake1) && (isWork2 || isAwake2) && !isGolden;
+
+  const format12 = (h: number, m: number = 0) => {
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    return `${h12}:${String(m).padStart(2, '0')} ${ampm}`;
+  };
+
+  return {
+    h1,
+    time1_12: format12(h1),
+    time1_24: `${String(h1).padStart(2, '0')}:00`,
+    h2,
+    m2,
+    time2_12: format12(h2, m2),
+    time2_24: `${String(h2).padStart(2, '0')}:${String(m2).padStart(2, '0')}`,
+    dayShift,
+    isWork1,
+    isWork2,
+    isGolden,
+    isFlexible
+  };
+});
+
+const goldenWindows = scheduleRows.filter(r => r.isGolden);
+const bestSlot = goldenWindows.length > 0 ? goldenWindows[Math.floor(goldenWindows.length / 2)] : scheduleRows[14];
+
+// Related comparisons
+const otherCitiesFrom = CITIES.filter(c => c.slug !== city1.slug && c.slug !== city2.slug).slice(0, 6);
+const otherCitiesTo = CITIES.filter(c => c.slug !== city2.slug && c.slug !== city1.slug).slice(0, 6);
+
+// Structured Data
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": `What is the time difference between ${city1.name} and ${city2.name}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `${city2.name} is ${aheadBehindText} ${city1.name}. For example, when it is 12:00 PM (noon) in ${city1.name}, it is ${scheduleRows.find(r => r.h1 === 12)?.time2_12 || ''} in ${city2.name}.`
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What is the best meeting time between ${city1.name} and ${city2.name}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": goldenWindows.length > 0 
+          ? `The best meeting time between ${city1.name} and ${city2.name} is between ${goldenWindows[0].time1_12} – ${goldenWindows[goldenWindows.length - 1].time1_12} ${city1.name} time (${goldenWindows[0].time2_12} – ${goldenWindows[goldenWindows.length - 1].time2_12} ${city2.name} time), when both locations are within standard business hours (9 AM – 5 PM).`
+          : `The best working compromise slot between ${city1.name} and ${city2.name} is around ${bestSlot.time1_12} in ${city1.name} (${bestSlot.time2_12} in ${city2.name}).`
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What are the typical business working hours in ${city1.name} and ${city2.name}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `In ${city1.name} (${city1.country}), standard business hours are typically ${city1.businessHoursText}. In ${city2.name} (${city2.country}), standard business hours are ${city2.businessHoursText}.`
+      }
+    }
+  ]
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timezonecal.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "City Comparisons",
+      "item": "https://timezonecal.com/time"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": `${city1.name} vs ${city2.name}`,
+      "item": `https://timezonecal.com/time/${city1.slug}-vs-${city2.slug}`
+    }
+  ]
+};
+---
+
+<BaseLayout
+  title={`${city1.name} vs ${city2.name} Time Difference & Meeting Planner`}
+  description={`Compare local time between ${city1.name} (${city1.country}) and ${city2.name} (${city2.country}). View live clocks, 24-hour working schedule overlap, and export calendar invites.`}
+  keywords={`${city1.name.toLowerCase()} vs ${city2.name.toLowerCase()} time, time difference ${city1.name.toLowerCase()} ${city2.name.toLowerCase()}, best meeting time ${city1.name.toLowerCase()} and ${city2.name.toLowerCase()}, ${city1.name.toLowerCase()} time now in ${city2.name.toLowerCase()}`}
+>
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <!-- Breadcrumbs & Hero -->
+  <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft);" class="py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1280px] mx-auto">
+      
+      <!-- Breadcrumbs -->
+      <nav class="flex items-center gap-2 text-xs font-semibold text-[var(--color-muted)] mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-[var(--color-ink)] transition-colors">Home</a>
+        <span>/</span>
+        <a href="/time" class="hover:text-[var(--color-ink)] transition-colors">Cities</a>
+        <span>/</span>
+        <span class="text-[var(--color-ink)] font-bold">{city1.name} vs {city2.name}</span>
+      </nav>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-rausch-soft)] text-[var(--color-rausch)] mb-3">
+            <span>{city1.name} ({city1.countryCode})</span>
+            <span>⇄</span>
+            <span>{city2.name} ({city2.countryCode})</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-[var(--color-ink)] tracking-tight leading-tight mb-2">
+            {city1.name} vs {city2.name} Time Difference
+          </h1>
+          <p class="text-base text-[var(--color-muted)] max-w-2xl">
+            Live synchronized clocks, working hours overlap, and 1-click meeting scheduling between {city1.name} and {city2.name}.
+          </p>
+        </div>
+
+        <!-- Reciprocal Swap Button -->
+        <a 
+          href={`/time/${city2.slug}-vs-${city1.slug}`}
+          class="px-4 py-2.5 rounded-xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] text-xs font-bold text-[var(--color-ink)] flex items-center gap-2 transition-colors shadow-sm no-underline flex-shrink-0"
+          title={`Switch to ${city2.name} vs ${city1.name}`}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+          Switch: {city2.name} vs {city1.name}
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <!-- ─── 1. Live Dual Clocks Hero Card ─── -->
+    <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
+      
+      <!-- City 1 Clock Card -->
+      <div class="p-6 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card">
+        <div class="flex items-center justify-between text-xs font-bold text-[var(--color-muted)] uppercase mb-3">
+          <span>{city1.country}</span>
+          <span class="font-mono text-[var(--color-rausch)]">{city1.standardOffset}</span>
+        </div>
+        <div class="text-2xl font-bold text-[var(--color-ink)] mb-1">{city1.name}</div>
+        <div id="live-clock-city1" class="text-4xl sm:text-5xl font-extrabold text-[var(--color-ink)] font-mono tracking-tight my-2">
+          --:-- --
+        </div>
+        <div id="live-date-city1" class="text-xs text-[var(--color-muted)] font-medium">
+          Loading local date...
+        </div>
+      </div>
+
+      <!-- Center Difference Badge -->
+      <div class="flex flex-col items-center justify-center p-3 text-center">
+        <div class="w-12 h-12 rounded-full bg-[var(--color-rausch)] text-white flex items-center justify-center shadow-md mb-2">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="17 1 21 5 17 9"></polyline>
+            <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+            <polyline points="7 23 3 19 7 15"></polyline>
+            <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+          </svg>
+        </div>
+        <span class="text-xs uppercase font-bold text-[var(--color-muted)] tracking-wider">Time Shift</span>
+        <span class="text-lg font-extrabold text-[var(--color-rausch)] font-mono">{diffFormatted}</span>
+      </div>
+
+      <!-- City 2 Clock Card -->
+      <div class="p-6 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card">
+        <div class="flex items-center justify-between text-xs font-bold text-[var(--color-muted)] uppercase mb-3">
+          <span>{city2.country}</span>
+          <span class="font-mono text-[var(--color-rausch)]">{city2.standardOffset}</span>
+        </div>
+        <div class="text-2xl font-bold text-[var(--color-ink)] mb-1">{city2.name}</div>
+        <div id="live-clock-city2" class="text-4xl sm:text-5xl font-extrabold text-[var(--color-rausch)] font-mono tracking-tight my-2">
+          --:-- --
+        </div>
+        <div id="live-date-city2" class="text-xs text-[var(--color-muted)] font-medium">
+          Loading local date...
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ─── 2. Golden Meeting Window Recommendation ─── -->
+    <div class="rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-emerald-500/10 via-[var(--color-canvas)] to-[var(--color-surface-soft)] border border-emerald-500/30 shadow-card">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-white mb-2">
+            ⭐ Recommended Meeting Overlap
+          </span>
+          <h2 class="text-2xl font-extrabold text-[var(--color-ink)] tracking-tight">
+            Best Meeting Time for {city1.name} &amp; {city2.name} Teams
+          </h2>
+          <p class="text-sm text-[var(--color-body)] mt-2 max-w-2xl leading-relaxed">
+            {goldenWindows.length > 0 ? (
+              <>
+                The optimal overlap window occurs between 
+                <strong> {goldenWindows[0].time1_12} – {goldenWindows[goldenWindows.length - 1].time1_12} in {city1.name}</strong>, 
+                corresponding to 
+                <strong> {goldenWindows[0].time2_12} – {goldenWindows[goldenWindows.length - 1].time2_12} in {city2.name}</strong>. 
+                Both teams are awake and in standard working hours.
+              </>
+            ) : (
+              <>
+                Because of the {diffAbs}-hour difference, the most reasonable overlap slot is around 
+                <strong> {bestSlot.time1_12} in {city1.name} ({bestSlot.time2_12} in {city2.name})</strong>.
+              </>
+            )}
+          </p>
+        </div>
+
+        <div class="flex flex-wrap sm:flex-nowrap gap-2.5 flex-shrink-0">
+          <a 
+            id="gcal-export-link"
+            href="#" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow-sm no-underline"
+          >
+            Add to Google Calendar
+          </a>
+          <button 
+            id="copy-city-meeting-btn"
+            class="px-4 py-2.5 rounded-xl bg-[var(--color-rausch)] hover:bg-[var(--color-rausch-active)] text-white text-xs font-semibold cursor-pointer transition-colors shadow-sm border-none"
+          >
+            Copy Meeting Summary
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 3. 24-Hour Visual Schedule Matrix ─── -->
+    <div class="rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card overflow-hidden">
+      <div class="p-6 bg-[var(--color-surface-soft)] border-b border-[var(--color-hairline-soft)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-[var(--color-ink)]">
+            24-Hour Working Schedule: {city1.name} ⇄ {city2.name}
+          </h2>
+          <p class="text-xs text-[var(--color-muted)] mt-0.5">Side-by-side comparison of awake and business working hours.</p>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-3 text-xs font-semibold">
+          <div class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500 text-emerald-700"></span>
+            <span>Business (9-17)</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded bg-amber-500/20 border border-amber-500 text-amber-700"></span>
+            <span>Awake</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded bg-slate-500/20 border border-slate-500 text-slate-700"></span>
+            <span>Sleep</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-[var(--color-canvas)] text-[11px] font-bold text-[var(--color-muted)] uppercase tracking-wider border-b border-[var(--color-hairline-soft)]">
+            <tr>
+              <th class="py-3.5 px-4 sm:px-6">{city1.name} Local Time</th>
+              <th class="py-3.5 px-4 sm:px-6">{city2.name} Local Time</th>
+              <th class="py-3.5 px-4 sm:px-6">Calendar Day</th>
+              <th class="py-3.5 px-4 sm:px-6">Status &amp; Availability</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--color-hairline-soft)]">
+            {scheduleRows.map(row => (
+              <tr class={`hover:bg-[var(--color-surface-soft)] transition-colors ${row.isGolden ? 'bg-emerald-500/5' : ''}`}>
+                <td class="py-3 px-4 sm:px-6 font-mono font-bold text-[var(--color-ink)]">
+                  <div class="flex items-center gap-2">
+                    <span>{row.time1_12}</span>
+                    <span class="text-xs font-normal text-[var(--color-muted)] font-mono">({row.time1_24})</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 sm:px-6 font-mono font-bold text-[var(--color-rausch)]">
+                  <div class="flex items-center gap-2">
+                    <span>{row.time2_12}</span>
+                    <span class="text-xs font-normal text-[var(--color-muted)] font-mono">({row.time2_24})</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 sm:px-6">
+                  {row.dayShift ? (
+                    <span class={`text-[10px] font-bold px-2 py-0.5 rounded-full ${row.dayShift === '+1 day' ? 'bg-[var(--color-rausch-soft)] text-[var(--color-rausch)]' : 'bg-[var(--color-surface-strong)] text-[var(--color-muted)]'}`}>
+                      {row.dayShift}
+                    </span>
+                  ) : (
+                    <span class="text-xs text-[var(--color-muted)]">Same Day</span>
+                  )}
+                </td>
+                <td class="py-3 px-4 sm:px-6">
+                  {row.isGolden ? (
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      ⭐ Golden Hour
+                    </span>
+                  ) : row.isFlexible ? (
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                      ⚡ Flexible Overlap
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-[var(--color-muted)]">
+                      Off-Hours
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 4. City Profiles & Working Habits ─── -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="p-6 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card">
+        <div class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-2">{city1.country}</div>
+        <h3 class="text-xl font-bold text-[var(--color-ink)] mb-1">{city1.name}</h3>
+        <p class="text-xs text-[var(--color-muted)] mb-3">{city1.tagline}</p>
+        
+        <div class="space-y-2 text-xs text-[var(--color-body)] border-t border-[var(--color-hairline-soft)] pt-3">
+          <div><strong>Standard Business Hours:</strong> {city1.businessHoursText}</div>
+          <div><strong>Key Commercial Districts:</strong> {city1.popularSpots.join(', ')}</div>
+          <div><strong>Time Zone Reference:</strong> {city1.tz} ({city1.standardOffset})</div>
+        </div>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card">
+        <div class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-2">{city2.country}</div>
+        <h3 class="text-xl font-bold text-[var(--color-ink)] mb-1">{city2.name}</h3>
+        <p class="text-xs text-[var(--color-muted)] mb-3">{city2.tagline}</p>
+        
+        <div class="space-y-2 text-xs text-[var(--color-body)] border-t border-[var(--color-hairline-soft)] pt-3">
+          <div><strong>Standard Business Hours:</strong> {city2.businessHoursText}</div>
+          <div><strong>Key Commercial Districts:</strong> {city2.popularSpots.join(', ')}</div>
+          <div><strong>Time Zone Reference:</strong> {city2.tz} ({city2.standardOffset})</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 5. Related City Comparisons ─── -->
+    <div class="p-6 sm:p-8 rounded-2xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline-soft)] space-y-6">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--color-ink)] mb-1">Related Global City Comparisons</h2>
+        <p class="text-xs text-[var(--color-muted)]">Check time differences and schedule meetings across other international routes.</p>
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">
+          Other Comparisons from {city1.name}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {otherCitiesFrom.map(c => (
+            <a 
+              href={`/time/${city1.slug}-vs-${c.slug}`}
+              class="px-3 py-1.5 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] text-xs font-semibold text-[var(--color-ink)] transition-colors no-underline shadow-sm"
+            >
+              {city1.name} vs {c.name}
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">
+          Other Comparisons with {city2.name}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {otherCitiesTo.map(c => (
+            <a 
+              href={`/time/${c.slug}-vs-${city2.slug}`}
+              class="px-3 py-1.5 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] text-xs font-semibold text-[var(--color-ink)] transition-colors no-underline shadow-sm"
+            >
+              {c.name} vs {city2.name}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</BaseLayout>
+
+<script define:vars={{ tz1: city1.tz, tz2: city2.tz, name1: city1.name, name2: city2.name, bestH1: bestSlot.h1, bestH2: bestSlot.h2 }}>
+  const clock1 = document.getElementById('live-clock-city1');
+  const clock2 = document.getElementById('live-clock-city2');
+  const date1 = document.getElementById('live-date-city1');
+  const date2 = document.getElementById('live-date-city2');
+  const gcalLink = document.getElementById('gcal-export-link');
+  const copyBtn = document.getElementById('copy-city-meeting-btn');
+
+  function updateClocks() {
+    const d = new Date();
+
+    const fmtTime = (tz) => new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true
+    }).format(d);
+
+    const fmtDate = (tz) => new Intl.DateTimeFormat('en-US', {
+      timeZone: tz, weekday: 'long', month: 'short', day: 'numeric', year: 'numeric'
+    }).format(d);
+
+    if (clock1) clock1.textContent = fmtTime(tz1);
+    if (clock2) clock2.textContent = fmtTime(tz2);
+    if (date1) date1.textContent = fmtDate(tz1);
+    if (date2) date2.textContent = fmtDate(tz2);
+  }
+
+  updateClocks();
+  setInterval(updateClocks, 1000);
+
+  // Setup GCal Link
+  if (gcalLink) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const y = tomorrow.getFullYear();
+    const m = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const day = String(tomorrow.getDate()).padStart(2, '0');
+
+    const startISO = `${y}${m}${day}T${String(bestH1).padStart(2, '0')}0000Z`;
+    const endISO = `${y}${m}${day}T${String(bestH1 + 1).padStart(2, '0')}0000Z`;
+    const title = encodeURIComponent(`${name1} ⇄ ${name2} Sync Meeting`);
+    const details = encodeURIComponent(`Meeting between ${name1} and ${name2} coordinated via TimeZoneCal (https://timezonecal.com)`);
+    
+    gcalLink.href = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startISO}/${endISO}&details=${details}`;
+  }
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const summary = `📅 Team Sync: ${name1} ⇄ ${name2}\n• ${name1} Time: ${bestH1}:00\n• ${name2} Time: ${bestH2}:00\nCoordinated via TimeZoneCal (https://timezonecal.com)`;
+      navigator.clipboard.writeText(summary).then(() => {
+        copyBtn.textContent = '✓ Copied Invite!';
+        setTimeout(() => {
+          copyBtn.textContent = 'Copy Meeting Summary';
+        }, 2000);
+      });
+    });
+  }
+</script>

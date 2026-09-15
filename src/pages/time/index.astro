@@ -1,0 +1,132 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { CITIES, PRIMARY_CITY_SLUGS } from '../../data/cities';
+
+const corridors = [
+  {
+    name: 'Transatlantic & Europe-Americas',
+    pairs: [
+      { c1: 'london', c2: 'new-york', label: 'London vs New York' },
+      { c1: 'london', c2: 'san-francisco', label: 'London vs San Francisco' },
+      { c1: 'paris', c2: 'new-york', label: 'Paris vs New York' },
+      { c1: 'berlin', c2: 'chicago', label: 'Berlin vs Chicago' },
+      { c1: 'london', c2: 'toronto', label: 'London vs Toronto' },
+      { c1: 'amsterdam', c2: 'los-angeles', label: 'Amsterdam vs Los Angeles' },
+    ]
+  },
+  {
+    name: 'Transpacific & Americas-Asia',
+    pairs: [
+      { c1: 'san-francisco', c2: 'tokyo', label: 'San Francisco vs Tokyo' },
+      { c1: 'new-york', c2: 'tokyo', label: 'New York vs Tokyo' },
+      { c1: 'san-francisco', c2: 'sydney', label: 'San Francisco vs Sydney' },
+      { c1: 'los-angeles', c2: 'singapore', label: 'Los Angeles vs Singapore' },
+      { c1: 'new-york', c2: 'mumbai', label: 'New York vs Mumbai' },
+      { c1: 'san-francisco', c2: 'hong-kong', label: 'San Francisco vs Hong Kong' },
+    ]
+  },
+  {
+    name: 'Eurasia & Middle East-Asia',
+    pairs: [
+      { c1: 'london', c2: 'tokyo', label: 'London vs Tokyo' },
+      { c1: 'london', c2: 'dubai', label: 'London vs Dubai' },
+      { c1: 'london', c2: 'singapore', label: 'London vs Singapore' },
+      { c1: 'london', c2: 'mumbai', label: 'London vs Mumbai' },
+      { c1: 'berlin', c2: 'singapore', label: 'Berlin vs Singapore' },
+      { c1: 'dubai', c2: 'mumbai', label: 'Dubai vs Mumbai' },
+    ]
+  },
+  {
+    name: 'Australia & Asia-Pacific',
+    pairs: [
+      { c1: 'sydney', c2: 'london', label: 'Sydney vs London' },
+      { c1: 'sydney', c2: 'new-york', label: 'Sydney vs New York' },
+      { c1: 'sydney', c2: 'tokyo', label: 'Sydney vs Tokyo' },
+      { c1: 'singapore', c2: 'sydney', label: 'Singapore vs Sydney' },
+      { c1: 'tokyo', c2: 'seoul', label: 'Tokyo vs Seoul' },
+      { c1: 'auckland', c2: 'san-francisco', label: 'Auckland vs San Francisco' },
+    ]
+  }
+];
+---
+
+<BaseLayout
+  title="World City Time Comparison Directory - Global Time Differences"
+  description="Compare time differences, business hours overlap, and schedule meetings across major global cities including London, New York, Tokyo, San Francisco, Dubai, Mumbai, and Singapore."
+  keywords="city time difference directory, world city time comparison, london vs new york time, sf vs tokyo time, best meeting time across cities"
+>
+
+  <!-- Hero Header -->
+  <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft);" class="py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1280px] mx-auto text-center">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-rausch-soft)] text-[var(--color-rausch)] mb-3">
+        Global City Hub
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-[var(--color-ink)] tracking-tight mb-3">
+        World City Time Comparison Directory
+      </h1>
+      <p class="text-base text-[var(--color-muted)] max-w-2xl mx-auto">
+        Compare local times, find Golden Working Hours, and schedule team meetings across world corridors.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <!-- Corridor Categories -->
+    {corridors.map(c => (
+      <div class="space-y-4">
+        <div class="border-b border-[var(--color-hairline-soft)] pb-2">
+          <h2 class="text-xl font-bold text-[var(--color-ink)]">{c.name}</h2>
+          <p class="text-xs text-[var(--color-muted)]">High-traffic team routes &amp; flight time comparisons.</p>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {c.pairs.map(p => (
+            <a 
+              href={`/time/${p.c1}-vs-${p.c2}`}
+              class="p-4 rounded-xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] shadow-card transition-all no-underline block group"
+            >
+              <div class="text-base font-bold text-[var(--color-ink)] group-hover:text-[var(--color-rausch)] transition-colors">
+                {p.label}
+              </div>
+              <div class="text-xs text-[var(--color-muted)] mt-1">View time difference &amp; meeting matrix →</div>
+            </a>
+          ))}
+        </div>
+      </div>
+    ))}
+
+    <!-- All Cities Grid -->
+    <div class="space-y-4 pt-6">
+      <div class="border-b border-[var(--color-hairline-soft)] pb-2">
+        <h2 class="text-xl font-bold text-[var(--color-ink)]">All Major Cities</h2>
+        <p class="text-xs text-[var(--color-muted)]">Select any city to compare schedules with other global financial hubs.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {CITIES.map(city => (
+          <div class="p-4 rounded-xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-sm">
+            <div class="font-bold text-sm text-[var(--color-ink)] mb-0.5">{city.name}</div>
+            <div class="text-xs text-[var(--color-muted)] mb-3">{city.country} • {city.standardOffset}</div>
+            <div class="flex flex-wrap gap-1.5">
+              {PRIMARY_CITY_SLUGS.filter(s => s !== city.slug).slice(0, 3).map(targetSlug => {
+                const targetCity = CITIES.find(c => c.slug === targetSlug);
+                return (
+                  <a 
+                    href={`/time/${city.slug}-vs-${targetSlug}`}
+                    class="px-2 py-1 rounded bg-[var(--color-surface-soft)] hover:bg-[var(--color-surface-strong)] text-[11px] font-semibold text-[var(--color-ink)] no-underline transition-colors"
+                  >
+                    vs {targetCity?.name || targetSlug}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  </div>
+
+</BaseLayout>

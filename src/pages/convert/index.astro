@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { TIMEZONES, PRIMARY_TIMEZONE_SLUGS } from '../../data/timezones';
+
+const regions = ['Americas', 'Europe', 'Asia-Pacific', 'Middle East & Africa'] as const;
+
+const popularPairs = [
+  { from: 'est', to: 'ist', label: 'EST to IST', sub: 'New York to Mumbai' },
+  { from: 'pst', to: 'gmt', label: 'PST to GMT', sub: 'San Francisco to London' },
+  { from: 'est', to: 'gmt', label: 'EST to GMT', sub: 'New York to London' },
+  { from: 'pst', to: 'ist', label: 'PST to IST', sub: 'California to India' },
+  { from: 'cst', to: 'ist', label: 'CST to IST', sub: 'Chicago to India' },
+  { from: 'gmt', to: 'jst', label: 'GMT to JST', sub: 'London to Tokyo' },
+  { from: 'utc', to: 'est', label: 'UTC to EST', sub: 'Universal to New York' },
+  { from: 'utc', to: 'pst', label: 'UTC to PST', sub: 'Universal to Los Angeles' },
+  { from: 'utc', to: 'ist', label: 'UTC to IST', sub: 'Universal to India' },
+  { from: 'gmt', to: 'aest', label: 'GMT to AEST', sub: 'London to Sydney' },
+  { from: 'est', to: 'jst', label: 'EST to JST', sub: 'New York to Tokyo' },
+  { from: 'pst', to: 'aest', label: 'PST to AEST', sub: 'San Francisco to Sydney' },
+  { from: 'cet', to: 'est', label: 'CET to EST', sub: 'Paris/Berlin to New York' },
+  { from: 'bst', to: 'ist', label: 'BST to IST', sub: 'London to India' },
+  { from: 'sgt', to: 'gmt', label: 'SGT to GMT', sub: 'Singapore to London' },
+  { from: 'gst', to: 'gmt', label: 'GST to GMT', sub: 'Dubai to London' },
+];
+---
+
+<BaseLayout
+  title="Time Zone Converter Directory - All World Time Conversions"
+  description="Comprehensive directory of world time zone converters. Compare and convert between EST, PST, CST, GMT, UTC, IST, JST, CET, AEST, and all 38 global time zones."
+  keywords="time zone converter directory, world time zone list, est to ist, pst to gmt, utc time converter, convert timezone"
+>
+
+  <!-- Hero Header -->
+  <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft);" class="py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1280px] mx-auto text-center">
+      <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-rausch-soft)] text-[var(--color-rausch)] mb-3">
+        Global Directory
+      </span>
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-[var(--color-ink)] tracking-tight mb-3">
+        World Time Zone Converter Directory
+      </h1>
+      <p class="text-base text-[var(--color-muted)] max-w-2xl mx-auto">
+        Fast, accurate, Daylight Saving-aware time zone conversions between all major global time zones.
+      </p>
+    </div>
+  </div>
+
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <!-- Popular Conversions Grid -->
+    <div>
+      <h2 class="text-xl font-bold text-[var(--color-ink)] mb-4 flex items-center gap-2">
+        <span>🔥</span> Most Popular Time Zone Conversions
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+        {popularPairs.map(p => (
+          <a 
+            href={`/convert/${p.from}-to-${p.to}`}
+            class="p-4 rounded-xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] shadow-card transition-all no-underline block group"
+          >
+            <div class="text-base font-bold text-[var(--color-ink)] group-hover:text-[var(--color-rausch)] transition-colors">
+              {p.label}
+            </div>
+            <div class="text-xs text-[var(--color-muted)] mt-1">{p.sub}</div>
+          </a>
+        ))}
+      </div>
+    </div>
+
+    <!-- Conversions By Region -->
+    {regions.map(region => {
+      const regionTzs = TIMEZONES.filter(t => t.region === region);
+      return (
+        <div class="space-y-4">
+          <div class="border-b border-[var(--color-hairline-soft)] pb-2">
+            <h2 class="text-lg font-bold text-[var(--color-ink)]">{region} Time Zones</h2>
+            <p class="text-xs text-[var(--color-muted)]">Select any zone to convert to other global locations.</p>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {regionTzs.map(tz => (
+              <div class="p-5 rounded-xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-sm">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-sm font-bold text-[var(--color-ink)]">{tz.code} · {tz.name}</span>
+                  <span class="text-xs font-mono font-bold text-[var(--color-rausch)]">{tz.offsetString}</span>
+                </div>
+                <div class="text-xs text-[var(--color-muted)] mb-3">
+                  {tz.popularCities.slice(0, 4).join(', ')}
+                </div>
+                <div class="flex flex-wrap gap-1.5">
+                  {PRIMARY_TIMEZONE_SLUGS.filter(s => s !== tz.slug).slice(0, 4).map(targetSlug => (
+                    <a 
+                      href={`/convert/${tz.slug}-to-${targetSlug}`}
+                      class="px-2 py-1 rounded bg-[var(--color-surface-soft)] hover:bg-[var(--color-surface-strong)] text-[11px] font-semibold text-[var(--color-ink)] no-underline transition-colors"
+                    >
+                      → {targetSlug.toUpperCase()}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    })}
+
+  </div>
+
+</BaseLayout>

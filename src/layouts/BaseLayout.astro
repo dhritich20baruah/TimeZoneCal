@@ -15,11 +15,20 @@ const {
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
+  { href: '/convert', label: 'Time Zones' },
+  { href: '/time',    label: 'City Times' },
   { href: '/about',   label: 'About' },
   { href: '/contact', label: 'Contact' },
 ];
 
 const footerCols = {
+  Tools: [
+    { href: '/',               label: '24h Timeline & Map' },
+    { href: '/convert',        label: 'Time Zone Directory' },
+    { href: '/time',           label: 'City Comparisons' },
+    { href: '/convert/est-to-ist', label: 'EST to IST Converter' },
+    { href: '/time/london-vs-new-york', label: 'London vs New York' },
+  ],
   Support: [
     { href: '/contact',        label: 'Contact us' },
     { href: '/privacy-policy', label: 'Privacy policy' },

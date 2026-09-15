@@ -1,0 +1,481 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { 
+  getAllTimezonePairs, 
+  TIMEZONES, 
+  generate24HourTable, 
+  formatTime12, 
+  formatTime24,
+  type TimezoneInfo 
+} from '../../data/timezones';
+
+export function getStaticPaths() {
+  return getAllTimezonePairs();
+}
+
+interface Props {
+  fromTz: TimezoneInfo;
+  toTz: TimezoneInfo;
+}
+
+const { fromTz, toTz } = Astro.props;
+
+const tableRows = generate24HourTable(fromTz, toTz);
+
+// Calculate current approximate offset difference
+const offsetDiffHours = toTz.offsetHours - fromTz.offsetHours;
+const diffAbs = Math.abs(offsetDiffHours);
+const diffSign = offsetDiffHours >= 0 ? '+' : '-';
+const diffFormatted = offsetDiffHours === 0 
+  ? 'Same Time' 
+  : `${diffSign}${diffAbs} ${diffAbs === 1 ? 'hour' : 'hours'}`;
+
+const aheadBehindText = offsetDiffHours > 0 
+  ? `${diffAbs} hours ahead of` 
+  : offsetDiffHours < 0 
+  ? `${diffAbs} hours behind` 
+  : 'the exact same time as';
+
+// Identify best golden overlap slots (both in work hours or flexible)
+const goldenSlots = tableRows.filter(r => r.isGoldenOverlap);
+const bestSlot = goldenSlots.length > 0 ? goldenSlots[Math.floor(goldenSlots.length / 2)] : tableRows[14];
+
+// Key quick milestone lookups
+const quickMilestones = [
+  { label: 'Start of Day', fromH: 9 },
+  { label: 'Mid-Morning', fromH: 11 },
+  { label: 'Noon / Lunch', fromH: 12 },
+  { label: 'Afternoon', fromH: 15 },
+  { label: 'End of Day', fromH: 17 },
+  { label: 'Evening', fromH: 20 },
+];
+
+const milestoneData = quickMilestones.map(m => {
+  const row = tableRows.find(r => r.fromHour === m.fromH) || tableRows[0];
+  return {
+    label: m.label,
+    fromTime: row.fromTime12,
+    toTime: row.toTime12,
+    dayShift: row.dayShift
+  };
+});
+
+// Related conversions from same origin and to same target
+const relatedFrom = TIMEZONES.filter(t => t.slug !== fromTz.slug && t.slug !== toTz.slug).slice(0, 8);
+const relatedTo = TIMEZONES.filter(t => t.slug !== toTz.slug && t.slug !== fromTz.slug).slice(0, 8);
+
+// Structured Data
+const faqSchema = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": `What is the time difference between ${fromTz.code} and ${toTz.code}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `${toTz.name} (${toTz.code}) is ${aheadBehindText} ${fromTz.name} (${fromTz.code}). When it is 12:00 PM ${fromTz.code}, it is ${tableRows.find(r => r.fromHour === 12)?.toTime12 || ''} in ${toTz.code}.`
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What time is 9:00 AM ${fromTz.code} in ${toTz.code}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `9:00 AM in ${fromTz.code} is ${tableRows.find(r => r.fromHour === 9)?.toTime12 || ''} ${tableRows.find(r => r.fromHour === 9)?.dayShift ? `(${tableRows.find(r => r.fromHour === 9)?.dayShift})` : ''} in ${toTz.code}.`
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What time is 4:00 PM ${fromTz.code} in ${toTz.code}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": `4:00 PM (16:00) in ${fromTz.code} is ${tableRows.find(r => r.fromHour === 16)?.toTime12 || ''} in ${toTz.code}.`
+      }
+    },
+    {
+      "@type": "Question",
+      "name": `What is the best meeting time between ${fromTz.code} and ${toTz.code}?`,
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": goldenSlots.length > 0 
+          ? `The optimal working overlap between ${fromTz.code} and ${toTz.code} occurs between ${goldenSlots[0].fromTime12} – ${goldenSlots[goldenSlots.length - 1].fromTime12} ${fromTz.code}, corresponding to ${goldenSlots[0].toTime12} – ${goldenSlots[goldenSlots.length - 1].toTime12} ${toTz.code}.`
+          : `Because of the wide time gap, the best compromise window is around ${bestSlot.fromTime12} ${fromTz.code} (${bestSlot.toTime12} ${toTz.code}).`
+      }
+    }
+  ]
+};
+
+const breadcrumbSchema = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://timezonecal.com"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Timezone Directory",
+      "item": "https://timezonecal.com/convert"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": `${fromTz.code} to ${toTz.code}`,
+      "item": `https://timezonecal.com/convert/${fromTz.slug}-to-${toTz.slug}`
+    }
+  ]
+};
+---
+
+<BaseLayout
+  title={`${fromTz.code} to ${toTz.code} Converter - Time Difference & Overlap Chart`}
+  description={`Convert ${fromTz.code} (${fromTz.name}) to ${toTz.code} (${toTz.name}) instantly. View live time difference, 24-hour side-by-side conversion table, and best team meeting hours.`}
+  keywords={`${fromTz.code} to ${toTz.code}, convert ${fromTz.slug} to ${toTz.slug}, ${fromTz.code} in ${toTz.code}, time difference ${fromTz.code} ${toTz.code}, 9am ${fromTz.code} in ${toTz.code}, 4pm ${fromTz.code} in ${toTz.code}, ${fromTz.name} to ${toTz.name}`}
+>
+
+  <!-- Schema.org JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify(faqSchema)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbSchema)} />
+
+  <!-- Breadcrumbs & Hero -->
+  <div style="background:var(--color-surface-soft); border-bottom:1px solid var(--color-hairline-soft);" class="py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-[1280px] mx-auto">
+      
+      <!-- Breadcrumb trail -->
+      <nav class="flex items-center gap-2 text-xs font-semibold text-[var(--color-muted)] mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-[var(--color-ink)] transition-colors">Home</a>
+        <span>/</span>
+        <a href="/convert" class="hover:text-[var(--color-ink)] transition-colors">Convert</a>
+        <span>/</span>
+        <span class="text-[var(--color-ink)] font-bold">{fromTz.code} to {toTz.code}</span>
+      </nav>
+
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-[var(--color-rausch-soft)] text-[var(--color-rausch)] mb-3">
+            <span>{fromTz.offsetString}</span>
+            <span>⇄</span>
+            <span>{toTz.offsetString}</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold text-[var(--color-ink)] tracking-tight leading-tight mb-2">
+            {fromTz.code} to {toTz.code} Time Zone Converter
+          </h1>
+          <p class="text-base text-[var(--color-muted)] max-w-2xl">
+            Convert <strong>{fromTz.name}</strong> to <strong>{toTz.name}</strong> with live clocks, instant conversion tables, and remote meeting overlap finders.
+          </p>
+        </div>
+
+        <!-- Quick Diff Pill -->
+        <div class="p-5 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card flex flex-col items-center justify-center text-center min-w-[200px]">
+          <div class="text-xs uppercase font-bold text-[var(--color-muted)] tracking-wider mb-1">Time Offset</div>
+          <div class="text-3xl font-extrabold text-[var(--color-rausch)] font-mono">{diffFormatted}</div>
+          <div class="text-xs text-[var(--color-body)] mt-1 font-medium">{toTz.code} is {aheadBehindText} {fromTz.code}</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-12">
+
+    <!-- ─── 1. Live Interactive Pair Converter Card ─── -->
+    <div class="rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card p-6 sm:p-8">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-xl font-bold text-[var(--color-ink)] flex items-center gap-2">
+          <span>⚡</span> Live {fromTz.code} to {toTz.code} Calculator
+        </h2>
+        <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-[var(--color-surface-soft)] text-[var(--color-muted)]">Real-Time Sync</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
+        <!-- From Box -->
+        <div class="p-5 rounded-xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline-soft)]">
+          <div class="flex items-center justify-between text-xs font-bold text-[var(--color-muted)] uppercase mb-2">
+            <span>{fromTz.name} ({fromTz.code})</span>
+            <span class="font-mono text-[var(--color-rausch)]">{fromTz.offsetString}</span>
+          </div>
+          <input 
+            type="time" 
+            id="interactive-from-time" 
+            value="09:00" 
+            class="w-full text-3xl sm:text-4xl font-extrabold text-[var(--color-ink)] font-mono bg-transparent border-none outline-none cursor-pointer"
+          />
+          <div class="text-xs text-[var(--color-muted)] mt-2 font-medium">
+            Major Hubs: {fromTz.popularCities.slice(0, 3).join(', ')}
+          </div>
+        </div>
+
+        <!-- Arrow divider -->
+        <div class="flex justify-center items-center py-2 md:py-0">
+          <div class="w-10 h-10 rounded-full bg-[var(--color-rausch)] text-white flex items-center justify-center shadow-md">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- To Box -->
+        <div class="p-5 rounded-xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline-soft)]">
+          <div class="flex items-center justify-between text-xs font-bold text-[var(--color-muted)] uppercase mb-2">
+            <span>{toTz.name} ({toTz.code})</span>
+            <span class="font-mono text-[var(--color-rausch)]">{toTz.offsetString}</span>
+          </div>
+          <div id="interactive-to-time" class="text-3xl sm:text-4xl font-extrabold text-[var(--color-rausch)] font-mono">
+            {tableRows.find(r => r.fromHour === 9)?.toTime12}
+          </div>
+          <div id="interactive-to-dayshift" class="text-xs text-[var(--color-muted)] mt-2 font-medium">
+            {tableRows.find(r => r.fromHour === 9)?.dayShift ? `(${tableRows.find(r => r.fromHour === 9)?.dayShift})` : 'Same calendar day'} • Hubs: {toTz.popularCities.slice(0, 3).join(', ')}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 2. Quick Conversion Cheat Sheet ─── -->
+    <div>
+      <div class="mb-4">
+        <h2 class="text-xl font-bold text-[var(--color-ink)]">Popular {fromTz.code} to {toTz.code} Conversions</h2>
+        <p class="text-sm text-[var(--color-muted)]">Instant lookup for standard business and day milestones.</p>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {milestoneData.map(m => (
+          <div class="p-4 rounded-xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-sm hover:border-[var(--color-rausch)] transition-colors">
+            <div class="text-[11px] font-bold text-[var(--color-muted)] uppercase tracking-wider mb-1">{m.label}</div>
+            <div class="text-sm font-extrabold text-[var(--color-ink)] font-mono">{m.fromTime} {fromTz.code}</div>
+            <div class="text-xs text-[var(--color-muted)] my-1">equals</div>
+            <div class="text-sm font-extrabold text-[var(--color-rausch)] font-mono">{m.toTime} {toTz.code}</div>
+            {m.dayShift && <span class="inline-block mt-1 text-[10px] font-bold px-1.5 py-0.5 rounded bg-[var(--color-surface-strong)] text-[var(--color-muted)]">{m.dayShift}</span>}
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- ─── 3. Golden Hour Overlap Banner ─── -->
+    <div class="rounded-2xl p-6 sm:p-8 bg-gradient-to-br from-emerald-500/10 via-[var(--color-canvas)] to-[var(--color-surface-soft)] border border-emerald-500/30 shadow-card">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500 text-white mb-2">
+            🤝 Remote Meeting Optimizer
+          </span>
+          <h2 class="text-2xl font-extrabold text-[var(--color-ink)] tracking-tight">
+            Best Meeting Time Between {fromTz.code} &amp; {toTz.code}
+          </h2>
+          <p class="text-sm text-[var(--color-body)] mt-2 max-w-2xl leading-relaxed">
+            {goldenSlots.length > 0 ? (
+              <>
+                The ideal <strong>Golden Window</strong> for scheduling calls between {fromTz.code} and {toTz.code} is 
+                <strong> {goldenSlots[0].fromTime12} – {goldenSlots[goldenSlots.length - 1].fromTime12} {fromTz.code}</strong> 
+                (which corresponds to <strong>{goldenSlots[0].toTime12} – {goldenSlots[goldenSlots.length - 1].toTime12} {toTz.code}</strong>), 
+                allowing all participants to connect within regular business working hours.
+              </>
+            ) : (
+              <>
+                Due to the significant time difference, the recommended working overlap occurs around 
+                <strong> {bestSlot.fromTime12} {fromTz.code} ({bestSlot.toTime12} {toTz.code})</strong>.
+              </>
+            )}
+          </p>
+        </div>
+
+        <a 
+          href="/" 
+          class="px-5 py-3 rounded-xl bg-[var(--color-rausch)] hover:bg-[var(--color-rausch-active)] text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap no-underline flex-shrink-0"
+        >
+          Open Golden Hour Planner →
+        </a>
+      </div>
+    </div>
+
+    <!-- ─── 4. Full 24-Hour Side-by-Side Conversion Table ─── -->
+    <div class="rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card overflow-hidden">
+      <div class="p-6 bg-[var(--color-surface-soft)] border-b border-[var(--color-hairline-soft)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-[var(--color-ink)]">
+            24-Hour {fromTz.code} to {toTz.code} Conversion Schedule
+          </h2>
+          <p class="text-xs text-[var(--color-muted)] mt-0.5">Click any row to view meeting overlap status.</p>
+        </div>
+
+        <!-- Legend -->
+        <div class="flex items-center gap-3 text-xs font-semibold">
+          <div class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded bg-emerald-500/20 border border-emerald-500 text-emerald-700"></span>
+            <span>Business (9-17)</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded bg-amber-500/20 border border-amber-500 text-amber-700"></span>
+            <span>Awake</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span class="w-3 h-3 rounded bg-slate-500/20 border border-slate-500 text-slate-700"></span>
+            <span>Sleep</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-[var(--color-canvas)] text-[11px] font-bold text-[var(--color-muted)] uppercase tracking-wider border-b border-[var(--color-hairline-soft)]">
+            <tr>
+              <th class="py-3.5 px-4 sm:px-6">{fromTz.code} Time</th>
+              <th class="py-3.5 px-4 sm:px-6">{toTz.code} Time</th>
+              <th class="py-3.5 px-4 sm:px-6">Calendar Shift</th>
+              <th class="py-3.5 px-4 sm:px-6">Overlap Compatibility</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--color-hairline-soft)]">
+            {tableRows.map(row => (
+              <tr class={`hover:bg-[var(--color-surface-soft)] transition-colors ${row.isGoldenOverlap ? 'bg-emerald-500/5' : ''}`}>
+                <td class="py-3 px-4 sm:px-6 font-mono font-bold text-[var(--color-ink)]">
+                  <div class="flex items-center gap-2">
+                    <span>{row.fromTime12}</span>
+                    <span class="text-xs font-normal text-[var(--color-muted)] font-mono">({row.fromTime24})</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 sm:px-6 font-mono font-bold text-[var(--color-rausch)]">
+                  <div class="flex items-center gap-2">
+                    <span>{row.toTime12}</span>
+                    <span class="text-xs font-normal text-[var(--color-muted)] font-mono">({row.toTime24})</span>
+                  </div>
+                </td>
+                <td class="py-3 px-4 sm:px-6">
+                  {row.dayShift ? (
+                    <span class={`text-[10px] font-bold px-2 py-0.5 rounded-full ${row.dayShift === '+1 day' ? 'bg-[var(--color-rausch-soft)] text-[var(--color-rausch)]' : 'bg-[var(--color-surface-strong)] text-[var(--color-muted)]'}`}>
+                      {row.dayShift}
+                    </span>
+                  ) : (
+                    <span class="text-xs text-[var(--color-muted)]">Same Day</span>
+                  )}
+                </td>
+                <td class="py-3 px-4 sm:px-6">
+                  {row.isGoldenOverlap ? (
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                      ⭐ Golden Hour Overlap
+                    </span>
+                  ) : (row.fromStatus === 'work' || row.toStatus === 'work') ? (
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                      ⚡ Flexible Overlap
+                    </span>
+                  ) : (
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium text-[var(--color-muted)]">
+                      Off-Hours
+                    </span>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── 5. Detailed Timezone Information ─── -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="p-6 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card">
+        <div class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-2">About Origin Zone</div>
+        <h3 class="text-lg font-bold text-[var(--color-ink)] mb-2">{fromTz.name} ({fromTz.code})</h3>
+        <p class="text-sm text-[var(--color-body)] leading-relaxed mb-4">{fromTz.description}</p>
+        <div class="text-xs text-[var(--color-muted)]">
+          <strong>Key Cities:</strong> {fromTz.popularCities.join(', ')}
+        </div>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-[var(--color-canvas)] border border-[var(--color-hairline)] shadow-card">
+        <div class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-2">About Destination Zone</div>
+        <h3 class="text-lg font-bold text-[var(--color-ink)] mb-2">{toTz.name} ({toTz.code})</h3>
+        <p class="text-sm text-[var(--color-body)] leading-relaxed mb-4">{toTz.description}</p>
+        <div class="text-xs text-[var(--color-muted)]">
+          <strong>Key Cities:</strong> {toTz.popularCities.join(', ')}
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── 6. Related Conversions (Internal Linking Graph) ─── -->
+    <div class="p-6 sm:p-8 rounded-2xl bg-[var(--color-surface-soft)] border border-[var(--color-hairline-soft)] space-y-6">
+      <div>
+        <h2 class="text-lg font-bold text-[var(--color-ink)] mb-1">Related Timezone Conversions</h2>
+        <p class="text-xs text-[var(--color-muted)]">Explore other popular conversions connected to {fromTz.code} and {toTz.code}.</p>
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">
+          Popular Conversions From {fromTz.code}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {relatedFrom.map(r => (
+            <a 
+              href={`/convert/${fromTz.slug}-to-${r.slug}`}
+              class="px-3 py-1.5 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] text-xs font-semibold text-[var(--color-ink)] transition-colors no-underline shadow-sm"
+            >
+              {fromTz.code} to {r.code} ({r.offsetString})
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 class="text-xs font-bold text-[var(--color-muted)] uppercase tracking-wider mb-3">
+          Popular Conversions To {toTz.code}
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {relatedTo.map(r => (
+            <a 
+              href={`/convert/${r.slug}-to-${toTz.slug}`}
+              class="px-3 py-1.5 rounded-lg bg-[var(--color-canvas)] border border-[var(--color-hairline)] hover:border-[var(--color-rausch)] text-xs font-semibold text-[var(--color-ink)] transition-colors no-underline shadow-sm"
+            >
+              {r.code} to {toTz.code}
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</BaseLayout>
+
+<script define:vars={{ fromIana: fromTz.iana, toIana: toTz.iana, fromOffsetH: fromTz.offsetHours, toOffsetH: toTz.offsetHours }}>
+  const inputEl = document.getElementById('interactive-from-time');
+  const outTimeEl = document.getElementById('interactive-to-time');
+  const outShiftEl = document.getElementById('interactive-to-dayshift');
+
+  function calculateInteractive() {
+    if (!inputEl || !outTimeEl) return;
+    const val = inputEl.value;
+    if (!val) return;
+
+    const [hStr, mStr] = val.split(':');
+    const h = parseInt(hStr, 10);
+    const m = parseInt(mStr, 10);
+
+    const diffHours = toOffsetH - fromOffsetH;
+    const totalMinutes = h * 60 + m + (diffHours * 60);
+
+    const normMins = ((totalMinutes % 1440) + 1440) % 1440;
+    const outH = Math.floor(normMins / 60);
+    const outM = Math.floor(normMins % 60);
+
+    const h12 = outH % 12 === 0 ? 12 : outH % 12;
+    const ampm = outH >= 12 ? 'PM' : 'AM';
+    const time12Str = `${h12}:${String(outM).padStart(2, '0')} ${ampm}`;
+
+    outTimeEl.textContent = time12Str;
+
+    if (outShiftEl) {
+      if (totalMinutes >= 1440) {
+        outShiftEl.textContent = '(+1 Day Next Day)';
+      } else if (totalMinutes < 0) {
+        outShiftEl.textContent = '(-1 Day Previous Day)';
+      } else {
+        outShiftEl.textContent = 'Same calendar day';
+      }
+    }
+  }
+
+  inputEl?.addEventListener('input', calculateInteractive);
+</script>
